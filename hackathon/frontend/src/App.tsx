@@ -12,6 +12,7 @@ import SuggestionPage from "./features/suggestion/SuggestionPage";
 import DeploymentPage from "./features/deployment/DeploymentPage";
 import HistoryPage from "./features/history/HistoryPage";
 import DeploymentDetailPage from "./features/history/DeploymentDetailPage";
+import SummaryPage from "./features/summary/SummaryPage";
 
 function ThemedApp() {
   const { mode } = useColorMode();
@@ -25,6 +26,7 @@ function ThemedApp() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<SuggestionPage />} />
             <Route path="/deploy" element={<DeploymentPage />} />
+            <Route path="/summary" element={<SummaryPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/history/:id" element={<DeploymentDetailPage />} />
             <Route path="/store-profile" element={<StoreProfilePage />} />

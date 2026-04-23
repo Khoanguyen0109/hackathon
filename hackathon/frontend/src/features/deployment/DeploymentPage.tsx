@@ -59,7 +59,7 @@ export default function DeploymentPage() {
       }).unwrap();
       dispatch(setSavedDeploymentId(result.deployment_id));
       setToast(true);
-      setTimeout(() => navigate("/summary"), 800);
+      setTimeout(() => navigate("/history"), 800);
     } catch {
       /* handled by RTK Query error */
     }
