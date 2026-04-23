@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -8,7 +9,6 @@ import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { setTargetDate, setContext } from "./suggestionSlice";
 import { useLazyGetContextQuery } from "../../services/contextApi";
 import FactorBadge from "./FactorBadge";
-import { useEffect } from "react";
 
 export default function DateContextBar() {
   const dispatch = useAppDispatch();
@@ -16,6 +16,7 @@ export default function DateContextBar() {
   const targetDate = useAppSelector((s) => s.suggestion.targetDate);
   const context = useAppSelector((s) => s.suggestion.context);
   const [fetchContext, { isFetching }] = useLazyGetContextQuery();
+  const dateRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (storeId && targetDate) {
@@ -37,8 +38,10 @@ export default function DateContextBar() {
             label="Date"
             value={targetDate}
             onChange={(e) => dispatch(setTargetDate(e.target.value))}
+            inputRef={dateRef}
+            onClick={() => dateRef.current?.showPicker?.()}
             slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ width: 180 }}
+            sx={{ width: 180, cursor: "pointer", "& input": { cursor: "pointer" } }}
           />
         </Box>
 
