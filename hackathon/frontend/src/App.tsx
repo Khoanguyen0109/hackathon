@@ -23,12 +23,12 @@ function ThemedApp() {
       <BrowserRouter>
         <Routes>
           <Route element={<AppLayout />}>
-            <Route path="/" element={<StoreProfilePage />} />
-            <Route path="/crew" element={<CrewPage />} />
-            <Route path="/suggestion" element={<SuggestionPage />} />
+            <Route path="/" element={<SuggestionPage />} />
             <Route path="/deploy" element={<DeploymentPage />} />
             <Route path="/summary" element={<SummaryPage />} />
             <Route path="/history" element={<HistoryPage />} />
+            <Route path="/store-profile" element={<StoreProfilePage />} />
+            <Route path="/crew" element={<CrewPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

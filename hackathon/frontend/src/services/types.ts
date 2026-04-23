@@ -148,6 +148,29 @@ export interface StaffingResponse {
   cells: StaffingCell[];
 }
 
+// Crew assignment (AI auto-assign)
+
+export interface CrewAssignmentRequest {
+  store_id: string;
+  date: string;
+  staffing_cells: StaffingCell[];
+}
+
+export interface CrewAssignmentCell {
+  station_id: string;
+  shift: Shift;
+  ai_recommended: number;
+  assigned_employee_ids: string[];
+  reasoning: string;
+}
+
+export interface CrewAssignmentResponse {
+  cells: CrewAssignmentCell[];
+  model_used: string;
+  generation_ms: number;
+  summary: string;
+}
+
 // Screen 3-5 — Deployments
 
 export interface AssignedCell {

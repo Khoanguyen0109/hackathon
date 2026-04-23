@@ -58,5 +58,6 @@ WORKDIR /work
 # FastAPI server port (the docker-compose `api` service listens here).
 EXPOSE 8000
 
-ENTRYPOINT ["ai-forecast"]
-CMD ["--help"]
+# Railway (and similar PaaS) inject a PORT env var.
+# Default to 8000 for local Docker usage.
+CMD ["sh", "-c", "ai-forecast serve --host 0.0.0.0 --port ${PORT:-8000}"]

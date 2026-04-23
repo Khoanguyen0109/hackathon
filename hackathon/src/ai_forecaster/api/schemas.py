@@ -201,6 +201,32 @@ class StaffingResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Crew assignment (AI auto-assign)
+# ---------------------------------------------------------------------------
+
+
+class CrewAssignmentRequest(BaseModel):
+    store_id: str
+    date: Date
+    staffing_cells: list[StaffingCell]
+
+
+class CrewAssignmentCell(BaseModel):
+    station_id: str
+    shift: Shift
+    ai_recommended: int
+    assigned_employee_ids: list[str] = Field(default_factory=list)
+    reasoning: str = ""
+
+
+class CrewAssignmentResponse(BaseModel):
+    cells: list[CrewAssignmentCell]
+    model_used: str
+    generation_ms: int
+    summary: str = ""
+
+
+# ---------------------------------------------------------------------------
 # Screen 3 / 4 / 5 — Deployments
 # ---------------------------------------------------------------------------
 

@@ -110,14 +110,16 @@ export function buildTheme(mode: PaletteMode) {
           sizeMedium: { padding: "10px 24px", fontSize: "0.8125rem" },
           sizeSmall: { padding: "6px 16px", fontSize: "0.75rem" },
           sizeLarge: { padding: "12px 32px", fontSize: "0.9375rem" },
-          containedPrimary: {
-            background: isLight
-              ? "linear-gradient(135deg, #007AFF 0%, #0062CC 100%)"
-              : "linear-gradient(135deg, #3E91FF 0%, #5BABFF 100%)",
-            "&:hover": {
+          contained: {
+            "&.MuiButton-colorPrimary": {
               background: isLight
-                ? "linear-gradient(135deg, #0062CC 0%, #004C99 100%)"
-                : "linear-gradient(135deg, #5BABFF 0%, #7DC3FF 100%)",
+                ? "linear-gradient(135deg, #007AFF 0%, #0062CC 100%)"
+                : "linear-gradient(135deg, #3E91FF 0%, #5BABFF 100%)",
+              "&:hover": {
+                background: isLight
+                  ? "linear-gradient(135deg, #0062CC 0%, #004C99 100%)"
+                  : "linear-gradient(135deg, #5BABFF 0%, #7DC3FF 100%)",
+              },
             },
           },
         },

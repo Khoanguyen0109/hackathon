@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
@@ -8,19 +9,31 @@ import IconButton from "@mui/material/IconButton";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Tooltip from "@mui/material/Tooltip";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import GroupsIcon from "@mui/icons-material/Groups";
 import { useFlowNavOverride } from "./FlowNavContext";
 import { useColorMode } from "../app/ColorModeContext";
 
-const STEPS = [
-  { label: "Store profile", path: "/" },
-  { label: "Crew setup", path: "/crew" },
-  { label: "AI suggestion", path: "/suggestion" },
+const MAIN_STEPS = [
+  { label: "AI suggestion", path: "/" },
   { label: "Deployment chart", path: "/deploy" },
   { label: "Summary", path: "/summary" },
   { label: "Saved charts", path: "/history" },
 ] as const;
+
+const MORE_ITEMS = [
+  { label: "Store profile", path: "/store-profile", icon: <StorefrontIcon fontSize="small" /> },
+  { label: "Crew setup", path: "/crew", icon: <GroupsIcon fontSize="small" /> },
+] as const;
+
+const MORE_PATHS = new Set(MORE_ITEMS.map((i) => i.path));
 
 interface StepNav {
   backPath?: string;
@@ -31,26 +44,30 @@ interface StepNav {
 }
 
 const STEP_NAV: Record<string, StepNav> = {
-  "/": { nextPath: "/crew", nextLabel: "Next: Crew setup" },
-  "/crew": { backPath: "/", nextPath: "/suggestion", nextLabel: "Next: AI suggestion" },
-  "/suggestion": { backPath: "/crew", nextPath: "/deploy", nextLabel: "Next: Assign crew" },
-  "/deploy": { backPath: "/suggestion", nextPath: "/summary", nextLabel: "Save deployment chart", nextVariant: "success" },
+  "/": { nextPath: "/deploy", nextLabel: "Next: Assign crew" },
+  "/deploy": { backPath: "/", nextPath: "/summary", nextLabel: "Save deployment chart", nextVariant: "success" },
   "/summary": { backPath: "/deploy", backLabel: "Edit chart", nextPath: "/history", nextLabel: "View saved charts" },
-  "/history": { backPath: "/summary", nextPath: "/", nextLabel: "Back to store profile" },
+  "/history": { backPath: "/summary" },
+  "/store-profile": { nextPath: "/crew", nextLabel: "Next: Crew setup" },
+  "/crew": { backPath: "/store-profile", nextPath: "/", nextLabel: "Next: AI suggestion" },
 };
 
-function pathToIndex(pathname: string): number {
-  const idx = STEPS.findIndex((s) => s.path === pathname);
-  return idx >= 0 ? idx : 0;
+function mainTabIndex(pathname: string): number | false {
+  const idx = MAIN_STEPS.findIndex((s) => s.path === pathname);
+  return idx >= 0 ? idx : false;
 }
 
 export default function StepperNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const current = pathToIndex(location.pathname);
+  const current = mainTabIndex(location.pathname);
   const nav = STEP_NAV[location.pathname] ?? {};
   const { override } = useFlowNavOverride();
   const { mode, toggleColorMode } = useColorMode();
+
+  const [moreAnchor, setMoreAnchor] = useState<null | HTMLElement>(null);
+  const moreOpen = Boolean(moreAnchor);
+  const isOnMorePage = MORE_PATHS.has(location.pathname as typeof MORE_ITEMS[number]["path"]);
 
   const nextLabel = override.nextLabel ?? nav.nextLabel;
   const nextVariant = override.nextVariant ?? nav.nextVariant ?? "primary";
@@ -101,7 +118,7 @@ export default function StepperNav() {
 
         <Tabs
           value={current}
-          onChange={(_, v) => navigate(STEPS[v].path)}
+          onChange={(_, v) => navigate(MAIN_STEPS[v].path)}
           variant="scrollable"
           scrollButtons="auto"
           sx={{
@@ -128,12 +145,73 @@ export default function StepperNav() {
             },
           }}
         >
-          {STEPS.map((s) => (
+          {MAIN_STEPS.map((s) => (
             <Tab key={s.path} label={s.label} />
           ))}
         </Tabs>
 
         <Box sx={{ display: "flex", gap: 0.75, alignItems: "center", ml: 1 }}>
+          <Tooltip title="More options" arrow>
+            <IconButton
+              onClick={(e) => setMoreAnchor(e.currentTarget)}
+              size="small"
+              sx={(t) => ({
+                width: 36,
+                height: 36,
+                borderRadius: "12px",
+                bgcolor: isOnMorePage
+                  ? "primary.main"
+                  : t.palette.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.08)"
+                    : "rgba(0, 0, 0, 0.04)",
+                color: isOnMorePage
+                  ? "primary.contrastText"
+                  : "text.primary",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  bgcolor: isOnMorePage
+                    ? "primary.dark"
+                    : t.palette.mode === "dark"
+                      ? "rgba(255, 255, 255, 0.14)"
+                      : "rgba(0, 0, 0, 0.08)",
+                },
+              })}
+            >
+              <MoreHorizIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
+          <Menu
+            anchorEl={moreAnchor}
+            open={moreOpen}
+            onClose={() => setMoreAnchor(null)}
+            transformOrigin={{ horizontal: "right", vertical: "top" }}
+            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+            slotProps={{
+              paper: {
+                sx: {
+                  mt: 0.5,
+                  minWidth: 180,
+                  borderRadius: 2,
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+                },
+              },
+            }}
+          >
+            {MORE_ITEMS.map((item) => (
+              <MenuItem
+                key={item.path}
+                selected={location.pathname === item.path}
+                onClick={() => {
+                  navigate(item.path);
+                  setMoreAnchor(null);
+                }}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText>{item.label}</ListItemText>
+              </MenuItem>
+            ))}
+          </Menu>
+
           <Tooltip title={isLight ? "Switch to dark mode" : "Switch to light mode"} arrow>
             <IconButton
               onClick={toggleColorMode}

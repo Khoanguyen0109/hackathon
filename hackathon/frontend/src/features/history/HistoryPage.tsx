@@ -28,7 +28,7 @@ export default function HistoryPage() {
       </Box>
 
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <Button variant="contained" size="small" onClick={() => navigate("/suggestion")}>
+        <Button variant="contained" size="small" onClick={() => navigate("/")}>
           + New chart
         </Button>
       </Box>

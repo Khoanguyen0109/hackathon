@@ -23,7 +23,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import chat, context, crew, deployments, forecast, ops, stores
+from .routers import chat, context, crew, crew_assignment, deployments, forecast, ops, stores
 from .state import AppState
 
 logger = logging.getLogger(__name__)
@@ -70,6 +70,7 @@ def create_app(examples_dir: str | Path | None = None) -> FastAPI:
     app.include_router(forecast.router)
     app.include_router(deployments.router)
     app.include_router(chat.router)
+    app.include_router(crew_assignment.router)
 
     @app.get("/", include_in_schema=False)
     def root() -> dict:

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -6,7 +6,9 @@ import Alert from "@mui/material/Alert";
 import Skeleton from "@mui/material/Skeleton";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { setStaffing, setGenerating, toggleChat } from "./suggestionSlice";
-import { useGenerateStaffingMutation } from "../../services/forecastApi";
+import { useGenerateStaffingMutation, useAssignCrewMutation } from "../../services/forecastApi";
+import { initCells } from "../deployment/deploymentSlice";
+import { useNavigate } from "react-router-dom";
 import DateContextBar from "./DateContextBar";
 import StaffingGrid from "./StaffingGrid";
 import AiSummaryBanner from "./AiSummaryBanner";
@@ -15,15 +17,47 @@ import { useFlowNavOverride } from "../../components/FlowNavContext";
 
 export default function SuggestionPage() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const storeId = useAppSelector((s) => s.storeProfile.selectedStoreId);
   const { targetDate, staffing, generating, chatOpen } = useAppSelector((s) => s.suggestion);
   const [generate, { error }] = useGenerateStaffingMutation();
+  const [assignCrew, { isLoading: assigning }] = useAssignCrewMutation();
   const { setOverride, clearOverride } = useFlowNavOverride();
 
+  const handleAssignCrew = useCallback(async () => {
+    if (!storeId || !targetDate || !staffing) return;
+    try {
+      const result = await assignCrew({
+        store_id: storeId,
+        date: targetDate,
+        staffing_cells: staffing.cells,
+      }).unwrap();
+      dispatch(initCells(result.cells));
+    } catch {
+      dispatch(
+        initCells(
+          staffing.cells.map((c) => ({
+            station_id: c.station_id,
+            shift: c.shift,
+            ai_recommended: c.ai_recommended,
+            assigned_employee_ids: [],
+          }))
+        )
+      );
+    }
+    navigate("/deploy");
+  }, [storeId, targetDate, staffing, assignCrew, dispatch, navigate]);
+
   useEffect(() => {
-    setOverride({ nextDisabled: !staffing });
+    if (assigning) {
+      setOverride({ nextLabel: "Assigning crew...", nextDisabled: true });
+    } else if (staffing) {
+      setOverride({ onNext: handleAssignCrew, nextLabel: "Next: Assign crew", nextDisabled: false });
+    } else {
+      setOverride({ nextDisabled: true });
+    }
     return () => clearOverride();
-  }, [staffing, setOverride, clearOverride]);
+  }, [staffing, assigning, handleAssignCrew, setOverride, clearOverride]);
 
   const handleGenerate = async () => {
     if (!storeId || !targetDate) return;
@@ -91,6 +125,32 @@ export default function SuggestionPage() {
           </Box>
           <Typography variant="body2" color="text.secondary">
             Analysing store context + external factors...
+          </Typography>
+          <Box sx={{ mt: 3 }}>
+            <Skeleton variant="rounded" height={300} sx={{ maxWidth: 700, mx: "auto", borderRadius: "20px" }} />
+          </Box>
+        </Box>
+      )}
+
+      {assigning && (
+        <Box sx={{ textAlign: "center", py: 5 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mb: 2 }}>
+            {[0, 1, 2].map((i) => (
+              <Box
+                key={i}
+                sx={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  bgcolor: "success.main",
+                  animation: "oneui-pulse 1.2s ease-in-out infinite",
+                  animationDelay: `${i * 0.2}s`,
+                }}
+              />
+            ))}
+          </Box>
+          <Typography variant="body2" color="text.secondary">
+            AI is assigning crew to stations...
           </Typography>
           <Box sx={{ mt: 3 }}>
             <Skeleton variant="rounded" height={300} sx={{ maxWidth: 700, mx: "auto", borderRadius: "20px" }} />
