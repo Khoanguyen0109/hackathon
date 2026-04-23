@@ -237,6 +237,9 @@ def parse_response(raw: str) -> ChatResponse:
 
     display = _JSON_BLOCK_RE.sub("", raw).strip()
     if not display:
-        display = raw
+        if actions:
+            display = "Here are my suggested assignments based on crew skills, availability, and past performance:"
+        else:
+            display = raw
 
     return ChatResponse(message=display, actions=actions)

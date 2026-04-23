@@ -24,7 +24,6 @@ import { useColorMode } from "../app/ColorModeContext";
 const MAIN_STEPS = [
   { label: "AI suggestion", path: "/" },
   { label: "Deployment chart", path: "/deploy" },
-  { label: "Summary", path: "/summary" },
   { label: "Saved charts", path: "/history" },
 ] as const;
 
@@ -45,15 +44,16 @@ interface StepNav {
 
 const STEP_NAV: Record<string, StepNav> = {
   "/": { nextPath: "/deploy", nextLabel: "Next: Assign crew" },
-  "/deploy": { backPath: "/", nextPath: "/summary", nextLabel: "Save deployment chart", nextVariant: "success" },
-  "/summary": { backPath: "/deploy", backLabel: "Edit chart", nextPath: "/history", nextLabel: "View saved charts" },
-  "/history": { backPath: "/summary" },
+  "/deploy": { backPath: "/", nextPath: "/history", nextLabel: "Save deployment chart", nextVariant: "success" },
+  "/history": { backPath: "/deploy" },
   "/store-profile": { nextPath: "/crew", nextLabel: "Next: Crew setup" },
   "/crew": { backPath: "/store-profile", nextPath: "/", nextLabel: "Next: AI suggestion" },
 };
 
 function mainTabIndex(pathname: string): number | false {
-  const idx = MAIN_STEPS.findIndex((s) => s.path === pathname);
+  const idx = MAIN_STEPS.findIndex(
+    (s) => pathname === s.path || (s.path !== "/" && pathname.startsWith(s.path + "/"))
+  );
   return idx >= 0 ? idx : false;
 }
 

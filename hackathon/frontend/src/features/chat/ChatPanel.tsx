@@ -22,7 +22,7 @@ const QUICK_CHIPS = [
 
 const MAX_HISTORY = 10;
 
-export default function ChatPanel() {
+export default function ChatPanel({ fill }: { fill?: boolean }) {
   const dispatch = useAppDispatch();
   const { messages, inputDraft, loading } = useAppSelector((s) => s.chat);
   const storeId = useAppSelector((s) => s.storeProfile.selectedStoreId);
@@ -114,7 +114,7 @@ export default function ChatPanel() {
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: 520,
+        height: fill ? "100%" : 520,
         overflow: "hidden",
         p: 0,
       }}

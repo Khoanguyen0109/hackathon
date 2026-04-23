@@ -34,10 +34,8 @@ export default function AppLayout() {
           component="main"
           sx={{
             flex: 1,
-            maxWidth: 1080,
             width: "100%",
-            mx: "auto",
-            px: { xs: 2, sm: 3 },
+            px: { xs: 2, sm: 3, md: 4, lg: 5 },
             py: 3,
             animation: "oneui-fade-in 0.4s ease-out",
           }}

@@ -23,7 +23,7 @@ export default function HistoryPage() {
       <Box sx={{ mb: 3 }}>
         <Typography variant="h6" sx={{ textAlign: "left" }}>Saved deployment charts</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          View, edit, or compare past deployment charts. Click any row to re-open.
+          View and compare past deployment charts. Click any row to see details.
         </Typography>
       </Box>
 
@@ -51,6 +51,7 @@ export default function HistoryPage() {
                 return (
                   <Box
                     key={d.deployment_id}
+                    onClick={() => navigate(`/history/${d.deployment_id}`)}
                     sx={(t) => {
                       const isDark = t.palette.mode === "dark";
                       return {

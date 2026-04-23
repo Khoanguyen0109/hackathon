@@ -31,9 +31,10 @@ interface DeploymentGridProps {
   cells: AssignedCell[];
   staffingCells: StaffingCell[];
   crew: Employee[];
+  readOnly?: boolean;
 }
 
-export default function DeploymentGrid({ cells, staffingCells, crew }: DeploymentGridProps) {
+export default function DeploymentGrid({ cells, staffingCells, crew, readOnly }: DeploymentGridProps) {
   const dispatch = useAppDispatch();
   const empMap = new Map(crew.map((e) => [e.employee_id, e]));
   const stationIds = [...new Set(cells.map((c) => c.station_id))];
@@ -196,12 +197,14 @@ export default function DeploymentGrid({ cells, staffingCells, crew }: Deploymen
                                   key={eid}
                                   label={emp ? emp.employee_name.split(" ").map((w: string) => w[0]).join("") : eid.slice(0, 4)}
                                   size="small"
-                                  onDelete={() => dispatch(unassignEmployee({ stationId: sid, shift: sh, employeeId: eid }))}
+                                  {...(!readOnly && {
+                                    onDelete: () => dispatch(unassignEmployee({ stationId: sid, shift: sh, employeeId: eid })),
+                                  })}
                                   sx={{ fontSize: 10, fontWeight: 600, height: 24 }}
                                 />
                               );
                             })}
-                            {available.length > 0 && (
+                            {!readOnly && available.length > 0 && (
                               <Button
                                 size="small"
                                 variant="outlined"

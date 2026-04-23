@@ -62,7 +62,7 @@ export default function FactorBadge({ factor }: { factor: ContextFactor }) {
           mb: 0.25,
         })}
       >
-        {factor.icon} {factor.label}
+        {factor.label}
       </Typography>
 
       {factor.probability != null && (
