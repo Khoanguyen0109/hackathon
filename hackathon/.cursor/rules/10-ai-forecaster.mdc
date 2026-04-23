@@ -1,0 +1,47 @@
+---
+description: Conventions for the ai-forecaster Python package and tests
+globs: src/ai_forecaster/**/*.py,tests/**/*.py,examples/**/*.py
+alwaysApply: false
+---
+
+# ai-forecaster — Python Conventions
+
+## Module boundaries (do not blur)
+
+| Module | Owns |
+|---|---|
+| `data_loader.py` | Excel I/O, timestamp/numeric column auto-detection, `TimeSeries` dataclass |
+| `model.py` | HF/Chronos pipeline wrapper, `ModelPrediction` dataclass, device + dtype resolution |
+| `forecaster.py` | Orchestration, `Forecaster`, `ForecastResult`, Excel export |
+| `visualization.py` | Matplotlib plots only |
+| `cli.py` | Typer CLI; thin layer over `Forecaster` |
+
+- Don't reach into Hugging Face APIs from `forecaster.py` — go through `ChronosForecastModel`.
+- Don't do file I/O from `model.py`.
+
+## Style
+
+- `from __future__ import annotations` at the top of every module.
+- Use `dataclass` for value objects (`TimeSeries`, `ModelPrediction`, `ForecastResult`).
+- Type-hint everything; prefer `Sequence[...]` for read-only inputs.
+- Lazy-load heavy resources (the Chronos pipeline must not load at import time — see `ChronosForecastModel.load`).
+- Keep the package importable without `chronos-forecasting` installed (raise a clear `ImportError` only when actually needed, like `model.load()` does).
+
+## Backend compatibility
+
+`ChronosForecastModel` must work with **both** T5 (sample-based) and Bolt (direct-quantile) checkpoints. Use `predict_quantiles` and the `_supported_sampling_kwargs` introspection pattern — do not pass `num_samples`/`temperature` unconditionally.
+
+## Tests
+
+- Tests must NOT download HF weights. Use the in-process mock model pattern (`tests/test_forecaster.py`).
+- Run via `pytest` (config in `pyproject.toml` → `testpaths = ["tests"]`).
+
+## Excel I/O
+
+- Output: one sheet per series + a `_summary` sheet. Use `_safe_sheet_name` for sheet names (Excel limits: 31 chars, no `[]:*?/\`).
+- Input: timestamp auto-detection picks the first column where ≥80% of values parse as datetime. Honor the existing `fillna` strategies (`ffill`/`bfill`/`interpolate`/numeric/None).
+
+## CLI
+
+- Use Typer + Rich (`console.rule`, `Table`, `console.status`). Match the look in `cli.py`.
+- All long-running steps print progress; never go silent.

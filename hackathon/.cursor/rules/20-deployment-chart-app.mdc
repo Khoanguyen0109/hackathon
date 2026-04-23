@@ -1,0 +1,64 @@
+---
+description: Stack and conventions for the AI-Driven Store Deployment Chart app (PRD)
+alwaysApply: true
+---
+
+# Deployment Chart App — Stack & Conventions
+
+Implements the PRD at [PRD-AI-Deployment-Chart.md](mdc:.cursor/PRD-AI-Deployment-Chart.md).
+
+## Target architecture
+
+```
+[ Manager UI ] ──HTTP──▶ [ Node.js API ] ──HTTP──▶ [ Python AI service ] ──▶ [ Ollama (local LLM) ]
+                              │
+                              ▼
+                          [ SQLite ]
+```
+
+- **Node.js API** (Node 20+): owns persistence, auth, request/response shapes for the UI, proxies AI calls.
+- **Python AI service**: builds prompts, calls Ollama, parses + validates structured staffing recommendations. Reuses `ai_forecaster` for any demand-prediction step.
+- **SQLite**: single file DB for hackathon. Schema lives at project root (`schema.md` referenced by PRD §7).
+- **Ollama**: local only. Model id is configurable; default to a 7B-class model (Llama 3 / Mistral).
+
+## Required output contract from AI service
+
+For each `(shift, station)` cell, return:
+
+```json
+{
+  "shift": "morning|afternoon|evening",
+  "station": "Grill",
+  "headcount": 2,
+  "reasoning": "Rainy day → drive-through demand spike",
+  "external_factors_used": ["weather:rain", "event:none", "holiday:none"]
+}
+```
+
+- `headcount` must be a non-negative integer.
+- `reasoning` is short (≤ 1 sentence) and free of PII.
+- The full response is validated/sanitized on the Node side before reaching the UI.
+
+## Hackathon constraints (from PRD §6)
+
+- Weather / events / holidays / promotions: **simulated** mock data, not live APIs.
+- Single-user; don't add multi-tenant auth complexity, but don't preclude it (scope every query by `store_id`).
+- Latency target: AI suggestion < 30s. UI page load < 2s. DnD response < 100ms.
+- Up to 20 stations, 50 crew, 3 shifts/day per store.
+
+## Data & privacy rules (non-negotiable)
+
+- **Never send crew personal data (names, contact, PII) to the LLM.** Send only operational context: station names, task names, crew counts and skills.
+- Persist BOTH the AI suggestion and the manager's final assignment for every saved chart (audit trail, PRD §5.1).
+- Persist the external-factor snapshot used for each suggestion so it can be explained retroactively.
+
+## Logging (PRD §5.2)
+
+Always log on these events: `ai_suggestion_generated`, `deployment_chart_saved`, `ai_service_error`, `store_profile_updated`. Include `store_id`, model name, and latency where relevant. Never log PII.
+
+## Existing scaffolding
+
+- `index.js` and `package.json` are placeholders; expand them when introducing the Node API.
+- The Python AI service should live alongside `src/ai_forecaster/` (e.g., `src/deployment_ai/`) and depend on it, not the other way around.
+
+See [ARCHITECTURE.md](mdc:.cursor/ARCHITECTURE.md) for boundaries and [STACK.md](mdc:.cursor/STACK.md) for tooling versions.

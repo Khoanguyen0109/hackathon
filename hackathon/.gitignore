@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.env
+
+# Notebooks / IDE
+.ipynb_checkpoints/
+.idea/
+.vscode/
+
+# Outputs
+outputs/
+*.png
+!docs/**/*.png
+
+# HF cache (optional, usually under ~/.cache)
+.cache/

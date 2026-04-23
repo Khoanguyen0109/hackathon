@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-forecaster"
+version = "0.1.0"
+description = "Zero-shot / fine-tunable time-series forecasting from Excel files using Hugging Face foundation models (Chronos)."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Hackathon" }]
+license = { text = "MIT" }
+dependencies = [
+    "torch>=2.1.0",
+    "transformers>=4.40.0",
+    "accelerate>=0.30.0",
+    "chronos-forecasting>=1.5.0",
+    "pandas>=2.1.0",
+    "numpy>=1.26.0",
+    "openpyxl>=3.1.2",
+    "xlrd>=2.0.1",
+    "matplotlib>=3.8.0",
+    "ortools>=9.10.0",
+    "typer>=0.12.0",
+    "rich>=13.7.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.7.0",
+    "python-multipart>=0.0.9",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0", "httpx>=0.27.0"]
+
+[project.scripts]
+ai-forecast = "ai_forecaster.cli:app"
+ai-shifts = "ai_forecaster.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

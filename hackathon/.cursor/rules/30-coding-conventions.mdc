@@ -1,0 +1,37 @@
+---
+description: General coding conventions across the repo
+alwaysApply: true
+---
+
+# Coding Conventions
+
+## General
+
+- **Edit, don't recreate.** Prefer modifying existing files over creating new ones unless the new file is genuinely needed.
+- **No narrating comments.** Avoid comments that restate the code. Only comment non-obvious intent, trade-offs, or constraints.
+- **Small, focused changes.** Don't refactor unrelated code while implementing a feature.
+
+## Python (3.10+)
+
+- `from __future__ import annotations` at top of every module.
+- Use `dataclass` for value objects, type-hint everything, prefer `pathlib.Path` over `str` for paths.
+- Raise specific exceptions with actionable messages (e.g., `ValueError("Could not auto-detect a timestamp column. Pass `timestamp_column=` explicitly.")`).
+- Lazy-import heavy deps (torch, transformers, chronos) inside the function that needs them when it makes startup faster.
+- Tests live in `tests/`, use `pytest`, and **must not** require network or HF model downloads.
+
+## Node.js (20+)
+
+- ESM modules. `package.json` is the source of truth for scripts and deps.
+- Validate every external input (request bodies, env vars) at the boundary; never trust LLM output without re-validation.
+- Async/await over callbacks; never swallow errors silently — log with context (`store_id`, route, latency).
+
+## Commits & changes
+
+- Don't commit `venv/`, `outputs/`, `__pycache__/`, `*.egg-info`, or HF caches. They're already covered by `.gitignore`/`.dockerignore` — don't bypass.
+- Don't add API keys, store-specific data, or LLM responses containing PII to the repo.
+
+## When in doubt
+
+- Re-read [PRD-AI-Deployment-Chart.md](mdc:.cursor/PRD-AI-Deployment-Chart.md) for product decisions.
+- Re-read [ARCHITECTURE.md](mdc:.cursor/ARCHITECTURE.md) for "where does this code go?" decisions.
+- Ask the user before introducing a new framework, language, or external service.

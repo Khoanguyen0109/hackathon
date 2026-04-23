@@ -1,0 +1,37 @@
+---
+description: High-level orientation for the hackathon repo (always loaded)
+alwaysApply: true
+---
+
+# Hackathon Repo — AI-Driven Store Deployment Chart
+
+This repo contains **two coexisting stacks**. Always identify which one you are touching before editing.
+
+## 1. `ai-forecaster` (Python, present today)
+
+Zero-shot probabilistic time-series forecasting from Excel using Hugging Face **Chronos**.
+
+- Source: `src/ai_forecaster/` (`data_loader`, `model`, `forecaster`, `visualization`, `cli`)
+- CLI entrypoint: `ai-forecast` (Typer) — see `src/ai_forecaster/cli.py`
+- Tests: `tests/` (use a mock model, no HF download)
+- Packaging: `pyproject.toml`, `requirements.txt`
+- Containerized via `Dockerfile` + `docker-compose.yml`
+
+See [10-ai-forecaster.mdc](mdc:.cursor/rules/10-ai-forecaster.mdc) for conventions.
+
+## 2. AI-Driven Store Deployment Chart (PRD target, to be built)
+
+A Restaurant Manager App feature that suggests staffing per shift × station using a **local LLM (Ollama)** plus simulated weather/event/holiday context. The forecaster above is reusable as the demand-prediction substrate.
+
+Authoritative spec: [PRD-AI-Deployment-Chart.md](mdc:.cursor/PRD-AI-Deployment-Chart.md)
+
+Stack (to be scaffolded): **Node.js API** (see stub `index.js`, `package.json`) + **Python AI service** (extends `ai_forecaster`) + **SQLite** + **Ollama**.
+
+See [20-deployment-chart-app.mdc](mdc:.cursor/rules/20-deployment-chart-app.mdc) for stack conventions and [ARCHITECTURE.md](mdc:.cursor/ARCHITECTURE.md) for how the two stacks compose.
+
+## Working rules
+
+- **Never invent new top-level stacks.** If a task doesn't fit either, ask first.
+- **Honor the PRD.** When implementing the deployment-chart feature, cross-check requirements in `PRD-AI-Deployment-Chart.md` (sections 1.4 success criteria, 3.2 normal flow, 5 NFRs).
+- **Hackathon scope.** Simulated data for weather/events/holidays is acceptable and expected. SQLite (not Postgres). Local Ollama (no cloud LLM).
+- **No PII to LLM.** Only operational context (station names, headcounts, skills) goes into prompts. Never crew names or customer data.

@@ -1,0 +1,42 @@
+services:
+  ai-forecaster:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-forecaster:latest
+    # Drop into a shell by default; override `command` to run the CLI directly.
+    entrypoint: ["bash"]
+    working_dir: /work
+    volumes:
+      # Mount the project so input/output files stay on the host.
+      - ./:/work
+      # Persist the Hugging Face model cache between runs.
+      - hf-cache:/root/.cache/huggingface
+    environment:
+      MPLBACKEND: Agg
+      HF_HOME: /root/.cache/huggingface
+      TRANSFORMERS_CACHE: /root/.cache/huggingface/transformers
+    tty: true
+    stdin_open: true
+
+  # FastAPI server — exposes the API described in README § "REST API".
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ai-forecaster:latest
+    entrypoint: ["ai-forecast", "serve", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    working_dir: /work
+    volumes:
+      - ./:/work
+      - hf-cache:/root/.cache/huggingface
+    environment:
+      MPLBACKEND: Agg
+      HF_HOME: /root/.cache/huggingface
+      TRANSFORMERS_CACHE: /root/.cache/huggingface/transformers
+      AI_FORECASTER_EXAMPLES_DIR: /work/examples
+
+volumes:
+  hf-cache:

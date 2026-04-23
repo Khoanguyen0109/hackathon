@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ByteCoach Manager — AI Deployment Chart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand: #E04321;
+    --brand-light: #FEF0EC;
+    --brand-dark: #B5321A;
+    --brand-subtle: #FDD8CE;
+    --ai-color: #2563EB;
+    --ai-light: #EFF6FF;
+    --ai-border: #BFDBFE;
+    --success: #16A34A;
+    --success-light: #F0FDF4;
+    --success-border: #BBF7D0;
+    --amber: #D97706;
+    --amber-light: #FFFBEB;
+    --amber-border: #FDE68A;
+
+    --color-text-primary: #111827;
+    --color-text-secondary: #6B7280;
+    --color-text-tertiary: #9CA3AF;
+    --color-background-primary: #FFFFFF;
+    --color-background-secondary: #F9FAFB;
+    --color-background-page: #F3F4F6;
+    --color-border-primary: #9CA3AF;
+    --color-border-secondary: #D1D5DB;
+    --color-border-tertiary: #E5E7EB;
+    --border-radius-sm: 6px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; color: var(--color-text-primary); background: var(--color-background-page); -webkit-font-smoothing: antialiased; }
+
+  .app { min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ---- Nav ---- */
+  .nav { display: flex; align-items: center; gap: 0; border-bottom: 1px solid var(--color-border-tertiary); padding: 0 1.25rem; background: var(--color-background-primary); position: sticky; top: 0; z-index: 10; box-shadow: var(--shadow-sm); }
+  .nav-logo { font-weight: 700; font-size: 14px; color: var(--color-text-primary); padding: 14px 18px 14px 0; border-right: 1px solid var(--color-border-tertiary); margin-right: 4px; letter-spacing: -0.02em; }
+  .nav-logo span { color: var(--brand); }
+  .nav-tab { font-size: 13px; padding: 14px 14px; cursor: pointer; color: var(--color-text-secondary); border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; font-weight: 500; }
+  .nav-tab:hover { color: var(--color-text-primary); background: var(--color-background-secondary); }
+  .nav-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+  .nav-steps { margin-left: auto; display: flex; align-items: center; gap: 6px; padding: 0 4px; }
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-border-tertiary); transition: all 0.25s ease; }
+  .step-dot.done { background: var(--success); box-shadow: 0 0 0 2px var(--success-light); }
+  .step-dot.active { background: var(--brand); transform: scale(1.4); box-shadow: 0 0 0 3px var(--brand-light); }
+
+  /* ---- Screens ---- */
+  .screen { display: none; padding: 1.5rem; max-width: 960px; margin: 0 auto; width: 100%; animation: fadeIn 0.25s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .screen-header { margin-bottom: 1.5rem; }
+  .screen-header h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.01em; color: var(--color-text-primary); }
+  .screen-header p { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
+
+  .row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+
+  /* ---- Cards ---- */
+  .card { background: var(--color-background-primary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; box-shadow: var(--shadow-sm); }
+  .card-title { font-size: 11px; font-weight: 600; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+
+  /* ---- Station / Task Items ---- */
+  .station-list { display: flex; flex-direction: column; gap: 8px; }
+  .station-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--border-radius-md); border: 1px solid var(--color-border-tertiary); background: var(--color-background-primary); transition: border-color 0.15s, box-shadow 0.15s; }
+  .station-item:hover { border-color: var(--color-border-secondary); box-shadow: var(--shadow-sm); }
+  .station-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .station-info { flex: 1; }
+  .station-name { font-size: 13px; font-weight: 600; }
+  .station-meta { font-size: 11px; color: var(--color-text-tertiary); margin-top: 1px; }
+  .toggle { width: 36px; height: 20px; border-radius: 10px; background: var(--success); cursor: pointer; position: relative; flex-shrink: 0; transition: background 0.2s; }
+  .toggle::after { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background: white; top: 2px; right: 2px; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+  .toggle.off { background: var(--color-border-secondary); }
+  .toggle.off::after { right: auto; left: 2px; }
+
+  /* ---- Crew Grid ---- */
+  .crew-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .crew-card { padding: 12px; border-radius: var(--border-radius-md); border: 1px solid var(--color-border-tertiary); background: var(--color-background-primary); cursor: pointer; transition: all 0.15s; }
+  .crew-card:hover { border-color: var(--color-border-secondary); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .crew-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+  .crew-name { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .crew-skills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .skill-tag { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
+
+  /* ---- Date / Factor Bars ---- */
+  .date-bar { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--color-background-primary); border-radius: var(--border-radius-md); border: 1px solid var(--color-border-tertiary); margin-bottom: 1rem; box-shadow: var(--shadow-sm); }
+  .date-label { font-size: 14px; font-weight: 600; flex: 1; }
+  .factor-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .factor-badge { font-size: 11px; padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 4px; font-weight: 500; }
+
+  /* ---- Data Grid ---- */
+  .grid-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
+  .grid-table th { font-size: 11px; font-weight: 600; color: var(--color-text-secondary); padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--color-border-tertiary); background: var(--color-background-secondary); }
+  .grid-table th:first-child { border-radius: var(--border-radius-md) 0 0 0; }
+  .grid-table th:last-child { border-radius: 0 var(--border-radius-md) 0 0; }
+  .grid-table td { padding: 8px 10px; border-bottom: 1px solid var(--color-border-tertiary); vertical-align: top; }
+  .grid-table tr:last-child td { border-bottom: none; }
+  .grid-table tbody tr:hover td { background: var(--color-background-secondary); }
+  .station-cell { font-size: 13px; font-weight: 600; padding-right: 12px; white-space: nowrap; }
+  .station-area { font-size: 10px; color: var(--color-text-tertiary); font-weight: 400; margin-top: 1px; }
+
+  .shift-cell { min-width: 140px; }
+  .ai-rec { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: var(--border-radius-sm); background: var(--ai-light); border: 1px solid var(--ai-border); margin-bottom: 4px; }
+  .ai-rec-count { font-size: 14px; font-weight: 700; color: var(--ai-color); min-width: 18px; }
+  .ai-rec-label { font-size: 10px; color: #3B82F6; font-weight: 500; }
+  .ai-reason { font-size: 10px; color: var(--color-text-tertiary); font-style: italic; padding: 0 2px; line-height: 1.4; }
+
+  .assigned-slots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .assignee-chip { font-size: 10px; padding: 3px 8px; border-radius: 12px; display: flex; align-items: center; gap: 3px; cursor: pointer; font-weight: 600; transition: all 0.15s; }
+  .assignee-chip:hover { opacity: 0.75; transform: scale(0.97); }
+  .add-slot { font-size: 10px; padding: 3px 8px; border-radius: 12px; border: 1px dashed var(--color-border-secondary); color: var(--color-text-tertiary); cursor: pointer; background: transparent; transition: all 0.15s; font-weight: 500; }
+  .add-slot:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-light); }
+
+  .under-warn { font-size: 10px; color: var(--amber); background: var(--amber-light); border: 1px solid var(--amber-border); padding: 2px 8px; border-radius: 4px; margin-top: 4px; display: inline-block; font-weight: 600; }
+
+  /* ---- Buttons ---- */
+  .btn { padding: 8px 18px; border-radius: var(--border-radius-md); font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); transition: all 0.15s; font-family: inherit; }
+  .btn:hover { background: var(--color-background-secondary); box-shadow: var(--shadow-sm); }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--brand); color: white; border-color: var(--brand); }
+  .btn-primary:hover { background: var(--brand-dark); box-shadow: 0 2px 8px rgba(224,67,33,0.3); }
+  .btn-ai { background: var(--ai-color); color: white; border-color: var(--ai-color); display: flex; align-items: center; gap: 6px; }
+  .btn-ai:hover { background: #1D4ED8; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+  .btn-success { background: var(--success); color: white; border-color: var(--success); }
+  .btn-success:hover { background: #15803D; box-shadow: 0 2px 8px rgba(22,163,74,0.3); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* ---- AI Loading ---- */
+  .ai-loading { text-align: center; padding: 2.5rem; }
+  .ai-pulse { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 14px; }
+  .pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ai-color); animation: pulse 1.2s ease-in-out infinite; }
+  .pulse-dot:nth-child(2) { animation-delay: 0.2s; }
+  .pulse-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; } 40% { transform: scale(1); opacity: 1; } }
+
+  /* ---- Summary ---- */
+  .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1rem; }
+  .summary-card { background: var(--color-background-primary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 14px 16px; box-shadow: var(--shadow-sm); }
+  .summary-val { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .summary-lbl { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; font-weight: 500; }
+
+  .flow-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--color-border-tertiary); }
+
+  .tooltip-hint { background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 8px 12px; font-size: 12px; color: var(--color-text-secondary); display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+
+  .diff-pill { font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: 4px; font-weight: 600; }
+  .diff-match { background: var(--success-light); color: var(--success); border: 1px solid var(--success-border); }
+  .diff-over { background: var(--amber-light); color: var(--amber); }
+  .diff-under { background: #FEF2F2; color: #DC2626; }
+
+  /* ---- Forms ---- */
+  select, input[type="date"], input[type="text"], input[type="number"] { background: var(--color-background-primary); border: 1px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 8px 12px; font-size: 13px; color: var(--color-text-primary); font-family: inherit; transition: border-color 0.15s, box-shadow 0.15s; outline: none; }
+  select:focus, input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-light); }
+  select, input[type="date"] { cursor: pointer; }
+
+  /* ---- Modals ---- */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:100; align-items:center; justify-content:center; }
+  .modal-overlay.show { display:flex; }
+  .modal { background:var(--color-background-primary); border-radius:16px; padding:1.75rem; width:90%; max-width:440px; box-shadow:var(--shadow-lg); animation: modalIn 0.2s ease; }
+  @keyframes modalIn { from { opacity:0; transform:scale(0.96) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+  .modal h3 { font-size:16px; font-weight:700; margin-bottom:4px; letter-spacing:-0.01em; }
+  .modal .modal-sub { font-size:12px; color:var(--color-text-secondary); margin-bottom:18px; line-height:1.5; }
+  .modal-field { margin-bottom:14px; }
+  .modal-field label { display:block; font-size:11px; font-weight:600; color:var(--color-text-secondary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:5px; }
+  .modal-field input, .modal-field select { width:100%; }
+  .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; padding-top:14px; border-top:1px solid var(--color-border-tertiary); }
+
+  .skill-picker { display:flex; flex-wrap:wrap; gap:6px; }
+  .skill-option { font-size:12px; padding:6px 12px; border-radius:8px; border:1px solid var(--color-border-secondary); cursor:pointer; transition:all 0.15s; background:var(--color-background-primary); color:var(--color-text-secondary); font-weight:500; }
+  .skill-option.selected { border-color:var(--brand); background:var(--brand-light); color:var(--brand-dark); }
+  .skill-option:hover { border-color:var(--color-border-primary); background:var(--color-background-secondary); }
+
+  /* ---- Saved Charts ---- */
+  .saved-charts-list { display:flex; flex-direction:column; gap:8px; }
+  .saved-chart-row { display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:var(--border-radius-md); border:1px solid var(--color-border-tertiary); background:var(--color-background-primary); cursor:pointer; transition: all 0.15s; }
+  .saved-chart-row:hover { border-color:var(--brand-subtle); box-shadow:var(--shadow-md); transform:translateY(-1px); }
+  .saved-chart-date { font-size:13px; font-weight:600; min-width:130px; }
+  .saved-chart-factors { flex:1; display:flex; gap:4px; flex-wrap:wrap; }
+  .saved-chart-stats { display:flex; gap:12px; align-items:center; font-size:12px; color:var(--color-text-secondary); }
+  .saved-chart-stat { display:flex; align-items:center; gap:4px; font-weight:500; }
+  .chart-status { padding:4px 10px; border-radius:6px; font-size:11px; font-weight:600; }
+  .chart-status.finalized { background:var(--success-light); color:var(--success); border:1px solid var(--success-border); }
+  .chart-status.draft { background:var(--amber-light); color:var(--amber); border:1px solid var(--amber-border); }
+
+  .empty-state { text-align:center; padding:2.5rem 1rem; color:var(--color-text-secondary); }
+  .empty-state .empty-icon { font-size:32px; margin-bottom:8px; opacity:0.5; }
+  .empty-state p { font-size:13px; line-height:1.5; }
+
+  /* ---- AI Reasoning Panel ---- */
+  .ai-cell { cursor: pointer; position: relative; border-radius: var(--border-radius-sm); transition: background 0.15s; padding: 6px 8px; }
+  .ai-cell:hover { background: var(--ai-light); }
+  .ai-cell .expand-icon { position: absolute; top: 6px; right: 6px; font-size: 10px; color: var(--color-text-tertiary); opacity: 0; transition: opacity 0.15s; }
+  .ai-cell:hover .expand-icon { opacity: 1; }
+
+  .reason-panel { display: none; margin-top: 8px; padding: 10px 12px; background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); animation: fadeIn 0.2s ease; }
+  .reason-panel.open { display: block; }
+  .reason-row { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; font-size: 11px; line-height: 1.5; }
+  .reason-row:not(:last-child) { border-bottom: 1px solid var(--color-border-tertiary); padding-bottom: 6px; margin-bottom: 2px; }
+  .reason-icon { flex-shrink: 0; width: 18px; text-align: center; font-size: 12px; }
+  .reason-label { font-weight: 600; color: var(--color-text-secondary); min-width: 70px; flex-shrink: 0; }
+  .reason-value { color: var(--color-text-primary); flex: 1; }
+  .confidence-high { color: var(--success); font-weight: 600; }
+  .confidence-med { color: var(--amber); font-weight: 600; }
+
+  .ai-summary-banner { margin-top: 12px; padding: 14px 16px; background: linear-gradient(135deg, var(--ai-light) 0%, #F5F3FF 100%); border: 1px solid var(--ai-border); border-radius: var(--border-radius-md); }
+  .ai-summary-banner .banner-title { font-size: 12px; font-weight: 700; color: var(--ai-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .ai-summary-banner .banner-text { font-size: 12px; color: var(--color-text-primary); line-height: 1.6; }
+  .ai-summary-banner .banner-factors { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+  .ai-summary-banner .factor-impact { font-size: 11px; display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; background: white; border: 1px solid var(--color-border-tertiary); font-weight: 500; }
+
+  /* ---- Factor Badge Tooltips ---- */
+  .factor-badge { position: relative; cursor: default; }
+  .factor-tip { display: none; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--color-text-primary); color: white; border-radius: 10px; padding: 12px 14px; width: 260px; z-index: 50; box-shadow: var(--shadow-lg); font-size: 12px; line-height: 1.6; pointer-events: none; animation: fadeIn 0.15s ease; }
+  .factor-tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: var(--color-text-primary); }
+  .factor-badge:hover .factor-tip { display: block; }
+  .factor-tip .tip-title { font-weight: 700; font-size: 13px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .factor-tip .tip-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
+  .factor-tip .tip-row:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.12); }
+  .factor-tip .tip-label { color: rgba(255,255,255,0.7); }
+  .factor-tip .tip-val { font-weight: 600; }
+  .factor-tip .tip-val.up { color: #4ADE80; }
+  .factor-tip .tip-val.down { color: #FB7185; }
+  .factor-tip .tip-val.neutral { color: rgba(255,255,255,0.5); }
+  .factor-tip .tip-note { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.12); font-size: 11px; color: rgba(255,255,255,0.6); font-style: italic; }
+
+  /* ---- Chat Panel ---- */
+  .ai-result-layout { display: flex; gap: 0; transition: all 0.3s ease; }
+  .ai-result-grid { flex: 1; min-width: 0; transition: all 0.3s ease; }
+  .chat-panel { width: 0; overflow: hidden; opacity: 0; transition: all 0.3s ease; display: flex; flex-direction: column; flex-shrink: 0; }
+  .chat-panel.open { width: 360px; opacity: 1; margin-left: 12px; }
+
+  .chat-panel-inner { display: flex; flex-direction: column; height: 520px; background: var(--color-background-primary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-md); overflow: hidden; }
+
+  .chat-header { padding: 12px 16px; border-bottom: 1px solid var(--color-border-tertiary); display: flex; align-items: center; justify-content: space-between; background: var(--color-background-secondary); flex-shrink: 0; }
+  .chat-header-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .chat-header-title .diamond { color: var(--ai-color); }
+  .chat-close { background: none; border: none; font-size: 16px; cursor: pointer; color: var(--color-text-tertiary); padding: 2px 6px; border-radius: 4px; transition: all 0.15s; }
+  .chat-close:hover { background: var(--color-background-page); color: var(--color-text-primary); }
+
+  .chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--color-border-secondary); border-radius: 2px; }
+
+  .chat-bubble { max-width: 92%; padding: 10px 12px; border-radius: 12px; font-size: 12px; line-height: 1.6; animation: fadeIn 0.2s ease; }
+  .chat-bubble-ai { align-self: flex-start; background: var(--ai-light); border: 1px solid var(--ai-border); color: var(--color-text-primary); border-bottom-left-radius: 4px; }
+  .chat-bubble-user { align-self: flex-end; background: var(--brand); color: white; border-bottom-right-radius: 4px; }
+  .chat-bubble-system { align-self: center; background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary); color: var(--color-text-secondary); font-size: 11px; padding: 6px 12px; border-radius: 8px; text-align: center; }
+
+  .chat-bubble-ai strong { color: var(--ai-color); }
+  .chat-bubble .cell-change { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: white; border: 1px solid var(--color-border-tertiary); font-size: 11px; font-weight: 600; margin: 2px 2px; }
+  .chat-bubble .cell-change .old-val { color: var(--color-text-tertiary); text-decoration: line-through; }
+  .chat-bubble .cell-change .new-val { color: var(--ai-color); }
+  .chat-bubble .cell-change .arrow { color: var(--color-text-tertiary); font-size: 10px; }
+
+  .chat-bubble .scenario-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .chat-bubble .scenario-actions button { font-size: 11px; padding: 4px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; border: 1px solid; transition: all 0.15s; font-family: inherit; }
+  .chat-bubble .scenario-btn-apply { background: var(--success); color: white; border-color: var(--success); }
+  .chat-bubble .scenario-btn-apply:hover { background: #15803D; }
+  .chat-bubble .scenario-btn-dismiss { background: white; color: var(--color-text-secondary); border-color: var(--color-border-secondary); }
+  .chat-bubble .scenario-btn-dismiss:hover { background: var(--color-background-secondary); }
+
+  .chat-typing { align-self: flex-start; display: flex; gap: 4px; padding: 10px 14px; }
+  .chat-typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--ai-color); opacity: 0.4; animation: pulse 1.2s ease-in-out infinite; }
+  .chat-typing span:nth-child(2) { animation-delay: 0.2s; }
+  .chat-typing span:nth-child(3) { animation-delay: 0.4s; }
+
+  .chat-input-area { border-top: 1px solid var(--color-border-tertiary); padding: 8px 10px; flex-shrink: 0; background: var(--color-background-primary); }
+  .chat-quick-chips { display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; }
+  .chat-chip { font-size: 10px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; font-weight: 500; transition: all 0.15s; font-family: inherit; white-space: nowrap; }
+  .chat-chip:hover { border-color: var(--ai-color); color: var(--ai-color); background: var(--ai-light); }
+  .chat-input-row { display: flex; gap: 6px; }
+  .chat-input { flex: 1; border: 1px solid var(--color-border-secondary); border-radius: 8px; padding: 8px 12px; font-size: 12px; font-family: inherit; outline: none; resize: none; height: 36px; transition: border-color 0.15s; }
+  .chat-input:focus { border-color: var(--ai-color); box-shadow: 0 0 0 3px var(--ai-light); }
+  .chat-input::placeholder { color: var(--color-text-tertiary); }
+  .chat-send { width: 36px; height: 36px; border-radius: 8px; border: none; background: var(--ai-color); color: white; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+  .chat-send:hover { background: #1D4ED8; }
+  .chat-send:active { transform: scale(0.95); }
+
+  .btn-chat-toggle { display: inline-flex; align-items: center; gap: 6px; background: var(--ai-light); color: var(--ai-color); border: 1px solid var(--ai-border); font-weight: 600; }
+  .btn-chat-toggle:hover { background: var(--ai-color); color: white; }
+  .btn-chat-toggle.active { background: var(--ai-color); color: white; }
+
+  /* Grid cell update indicators */
+  .grid-refined { position: relative; }
+  .grid-refined::before { content: 'refined'; position: absolute; top: 2px; right: 2px; font-size: 8px; font-weight: 700; color: var(--amber); background: var(--amber-light); border: 1px solid var(--amber-border); padding: 1px 5px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .grid-override { position: relative; }
+  .grid-override::before { content: 'override'; position: absolute; top: 2px; right: 2px; font-size: 8px; font-weight: 700; color: var(--brand); background: var(--brand-light); border: 1px solid var(--brand-subtle); padding: 1px 5px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .grid-scenario .ai-rec { border-color: #C084FC; background: #FAF5FF; }
+  .grid-scenario .ai-rec-count { color: #7C3AED; }
+
+  @media (max-width: 640px) {
+    .summary-row { grid-template-columns: repeat(2, 1fr); }
+    .nav-tab { font-size: 11px; padding: 12px 8px; }
+    .saved-chart-row { flex-wrap: wrap; }
+    .chat-panel.open { width: 280px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <nav class="nav">
+    <div class="nav-logo">Byte<span>Coach</span> Manager</div>
+    <div class="nav-tab active" onclick="goTo(0)" id="tab-0">Store profile</div>
+    <div class="nav-tab" onclick="goTo(1)" id="tab-1">Crew setup</div>
+    <div class="nav-tab" onclick="goTo(2)" id="tab-2">AI suggestion</div>
+    <div class="nav-tab" onclick="goTo(3)" id="tab-3">Deployment chart</div>
+    <div class="nav-tab" onclick="goTo(4)" id="tab-4">Summary</div>
+    <div class="nav-tab" onclick="goTo(5)" id="tab-5">Saved charts</div>
+    <div class="nav-steps">
+      <div class="step-dot active" id="dot-0"></div>
+      <div class="step-dot" id="dot-1"></div>
+      <div class="step-dot" id="dot-2"></div>
+      <div class="step-dot" id="dot-3"></div>
+      <div class="step-dot" id="dot-4"></div>
+      <div class="step-dot" id="dot-5"></div>
+    </div>
+  </nav>
+
+  <!-- Screen 0: Store Profile -->
+  <div class="screen active" id="screen-0">
+    <div class="screen-header">
+      <h2>Store profile — stations &amp; tasks</h2>
+      <p>Configure the operational stations and secondary tasks for your store. These become the rows in your deployment chart.</p>
+    </div>
+    <div class="row">
+      <div class="card" style="flex:1; min-width:260px;">
+        <div class="card-title">Stations</div>
+        <div class="station-list" id="station-list">
+          <div class="station-item">
+            <div class="station-icon" style="background:#FAEEDA; font-size:16px;">🔥</div>
+            <div class="station-info"><div class="station-name">Grill</div><div class="station-meta">Kitchen · 2 positions</div></div>
+            <div class="toggle" onclick="this.classList.toggle('off')"></div>
+          </div>
+          <div class="station-item">
+            <div class="station-icon" style="background:#FAECE7; font-size:16px;">🍟</div>
+            <div class="station-info"><div class="station-name">Fryer</div><div class="station-meta">Kitchen · 2 positions</div></div>
+            <div class="toggle" onclick="this.classList.toggle('off')"></div>
+          </div>
+          <div class="station-item">
+            <div class="station-icon" style="background:#EAF3DE; font-size:16px;">🪟</div>
+            <div class="station-info"><div class="station-name">Drive-Through</div><div class="station-meta">Front · 3 positions</div></div>
+            <div class="toggle" onclick="this.classList.toggle('off')"></div>
+          </div>
+          <div class="station-item">
+            <div class="station-icon" style="background:#E6F1FB; font-size:16px;">🏷</div>
+            <div class="station-info"><div class="station-name">Front Counter</div><div class="station-meta">Front · 2 positions</div></div>
+            <div class="toggle" onclick="this.classList.toggle('off')"></div>
+          </div>
+          <div class="station-item">
+            <div class="station-icon" style="background:#EEEDFE; font-size:16px;">📦</div>
+            <div class="station-info"><div class="station-name">Assembly</div><div class="station-meta">Kitchen · 2 positions</div></div>
+            <div class="toggle" onclick="this.classList.toggle('off')"></div>
+          </div>
+        </div>
+        <button class="btn btn-sm" style="margin-top:10px; width:100%;" onclick="openModal('add-station-modal')">+ Add station</button>
+      </div>
+      <div class="card" style="flex:1; min-width:220px;">
+        <div class="card-title">Secondary tasks</div>
+        <div class="station-list" id="task-list">
+          <div class="station-item">
+            <div class="station-icon" style="background:#E1F5EE; font-size:14px;">🧹</div>
+            <div class="station-info"><div class="station-name">Cleaning</div><div class="station-meta">Rotational task</div></div>
+            <div class="toggle" onclick="this.classList.toggle('off')"></div>
+          </div>
+          <div class="station-item">
+            <div class="station-icon" style="background:#FAEEDA; font-size:14px;">🗄</div>
+            <div class="station-info"><div class="station-name">Restocking</div><div class="station-meta">Rotational task</div></div>
+            <div class="toggle" onclick="this.classList.toggle('off')"></div>
+          </div>
+          <div class="station-item">
+            <div class="station-icon" style="background:#FAECE7; font-size:14px;">🥗</div>
+            <div class="station-info"><div class="station-name">Prep</div><div class="station-meta">Kitchen task</div></div>
+            <div class="toggle" onclick="this.classList.toggle('off')"></div>
+          </div>
+        </div>
+        <button class="btn btn-sm" style="margin-top:10px; width:100%;" onclick="openModal('add-task-modal')">+ Add task</button>
+      </div>
+    </div>
+    <div class="flow-nav">
+      <div style="font-size:12px; color:var(--color-text-secondary);">Step 1 of 5</div>
+      <button class="btn btn-primary" onclick="goTo(1)">Next: Crew setup →</button>
+    </div>
+  </div>
+
+  <!-- Screen 1: Crew Setup -->
+  <div class="screen" id="screen-1">
+    <div class="screen-header">
+      <h2>Store profile — crew members</h2>
+      <p>Add crew members, their certified stations (skills), and their typical availability. This pool appears in the deployment chart for assignment.</p>
+    </div>
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">Crew roster — <span id="crew-count">8</span> members</div>
+      <div class="crew-grid" id="crew-grid">
+        <div class="crew-card" onclick="openEditCrew('Trang N.', 'TN', ['Grill','Front Counter'], 'Mon–Sat, All shifts')">
+          <div class="crew-avatar" style="background:#FAEEDA; color:#BA7517;">TN</div>
+          <div class="crew-name">Trang N.</div>
+          <div class="crew-skills">
+            <span class="skill-tag" style="background:#FAEEDA; color:#BA7517;">Grill</span>
+            <span class="skill-tag" style="background:#E6F1FB; color:#185FA5;">Front Counter</span>
+          </div>
+        </div>
+        <div class="crew-card" onclick="openEditCrew('Minh H.', 'MH', ['Drive-Through','Front Counter'], 'Mon–Fri, Morning+Afternoon')">
+          <div class="crew-avatar" style="background:#EAF3DE; color:#3B6D11;">MH</div>
+          <div class="crew-name">Minh H.</div>
+          <div class="crew-skills">
+            <span class="skill-tag" style="background:#EAF3DE; color:#3B6D11;">Drive-Through</span>
+            <span class="skill-tag" style="background:#EAF3DE; color:#3B6D11;">Front Counter</span>
+          </div>
+        </div>
+        <div class="crew-card" onclick="openEditCrew('Lan P.', 'LP', ['Fryer','Assembly'], 'Mon–Sat, All shifts')">
+          <div class="crew-avatar" style="background:#FAECE7; color:#993C1D;">LP</div>
+          <div class="crew-name">Lan P.</div>
+          <div class="crew-skills">
+            <span class="skill-tag" style="background:#FAECE7; color:#993C1D;">Fryer</span>
+            <span class="skill-tag" style="background:#FAEEDA; color:#BA7517;">Assembly</span>
+          </div>
+        </div>
+        <div class="crew-card" onclick="openEditCrew('Duc T.', 'DT', ['Assembly','Front Counter'], 'Tue–Sun, Afternoon+Evening')">
+          <div class="crew-avatar" style="background:#EEEDFE; color:#3C3489;">DT</div>
+          <div class="crew-name">Duc T.</div>
+          <div class="crew-skills">
+            <span class="skill-tag" style="background:#EEEDFE; color:#3C3489;">Assembly</span>
+            <span class="skill-tag" style="background:#E6F1FB; color:#185FA5;">Front Counter</span>
+          </div>
+        </div>
+        <div class="crew-card" onclick="openEditCrew('Hoa V.', 'HV', ['Drive-Through','Fryer'], 'Mon–Sun, All shifts')">
+          <div class="crew-avatar" style="background:#E6F1FB; color:#185FA5;">HV</div>
+          <div class="crew-name">Hoa V.</div>
+          <div class="crew-skills">
+            <span class="skill-tag" style="background:#EAF3DE; color:#3B6D11;">Drive-Through</span>
+            <span class="skill-tag" style="background:#FAECE7; color:#993C1D;">Fryer</span>
+          </div>
+        </div>
+        <div class="crew-card" onclick="openEditCrew('Kiet N.', 'KN', ['Grill','Assembly'], 'Mon–Sat, Morning+Afternoon')">
+          <div class="crew-avatar" style="background:#E1F5EE; color:#085041;">KN</div>
+          <div class="crew-name">Kiet N.</div>
+          <div class="crew-skills">
+            <span class="skill-tag" style="background:#FAEEDA; color:#BA7517;">Grill</span>
+            <span class="skill-tag" style="background:#FAEEDA; color:#BA7517;">Assembly</span>
+          </div>
+        </div>
+        <div class="crew-card" onclick="openEditCrew('Bao L.', 'BL', ['Drive-Through','Assembly'], 'Wed–Sun, All shifts')">
+          <div class="crew-avatar" style="background:#FAECE7; color:#712B13;">BL</div>
+          <div class="crew-name">Bao L.</div>
+          <div class="crew-skills">
+            <span class="skill-tag" style="background:#EAF3DE; color:#3B6D11;">Drive-Through</span>
+            <span class="skill-tag" style="background:#EEEDFE; color:#3C3489;">Assembly</span>
+          </div>
+        </div>
+        <div class="crew-card" style="border-style: dashed; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80px; color: var(--color-text-secondary);" onclick="openModal('add-crew-modal')">
+          <div style="font-size: 20px; margin-bottom: 4px; color: var(--color-border-secondary);">+</div>
+          <div style="font-size: 11px;">Add crew member</div>
+        </div>
+      </div>
+    </div>
+    <div class="flow-nav">
+      <button class="btn" onclick="goTo(0)">← Back</button>
+      <button class="btn btn-primary" onclick="goTo(2)">Next: AI suggestion →</button>
+    </div>
+  </div>
+
+  <!-- Screen 2: AI Suggestion -->
+  <div class="screen" id="screen-2">
+    <div class="screen-header">
+      <h2>AI staffing suggestion</h2>
+      <p>Select a target date. The system fetches external context, then the AI suggests headcounts per station per shift.</p>
+    </div>
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">Target date &amp; context</div>
+      <div class="row" style="align-items:center; margin-bottom:0;">
+        <div>
+          <div style="font-size:11px; color:var(--color-text-secondary); margin-bottom:4px;">Date</div>
+          <input type="date" value="2026-04-26" id="target-date" />
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px; color:var(--color-text-secondary); margin-bottom:6px;">External factors fetched</div>
+          <div class="factor-badges">
+            <span class="factor-badge" style="background:#E6F1FB; color:#185FA5;">🌧 Rain (70%)
+              <div class="factor-tip">
+                <div class="tip-title">🌧 Weather — Rain</div>
+                <div class="tip-row"><span class="tip-label">Probability</span><span class="tip-val">70%</span></div>
+                <div class="tip-row"><span class="tip-label">Delivery impact</span><span class="tip-val up">+5%</span></div>
+                <div class="tip-row"><span class="tip-label">Dine-in impact</span><span class="tip-val down">−3%</span></div>
+                <div class="tip-row"><span class="tip-label">Source</span><span class="tip-val">Prediction rule</span></div>
+                <div class="tip-note">Rain shifts customers from dine-in to delivery and drive-through. Expect higher dispatch and DT load.</div>
+              </div>
+            </span>
+            <span class="factor-badge" style="background:#FAEEDA; color:#BA7517;">⚽ Local match nearby
+              <div class="factor-tip">
+                <div class="tip-title">⚽ Event — Local Match</div>
+                <div class="tip-row"><span class="tip-label">Time</span><span class="tip-val">15:00 – 17:00</span></div>
+                <div class="tip-row"><span class="tip-label">Delivery impact</span><span class="tip-val up">+3–8% (est.)</span></div>
+                <div class="tip-row"><span class="tip-label">Dine-in impact</span><span class="tip-val up">+5–10% (est.)</span></div>
+                <div class="tip-row"><span class="tip-label">Source</span><span class="tip-val">AI inference</span></div>
+                <div class="tip-note">No explicit rule. AI estimates based on sports event patterns: pre-game quick orders at DT, post-game delivery spike.</div>
+              </div>
+            </span>
+            <span class="factor-badge" style="background:#EAF3DE; color:#3B6D11;">✓ No holiday
+              <div class="factor-tip">
+                <div class="tip-title">📅 Holiday — None</div>
+                <div class="tip-row"><span class="tip-label">Delivery impact</span><span class="tip-val neutral">0%</span></div>
+                <div class="tip-row"><span class="tip-label">Dine-in impact</span><span class="tip-val neutral">0%</span></div>
+                <div class="tip-row"><span class="tip-label">Source</span><span class="tip-val">Calendar check</span></div>
+                <div class="tip-note">No national or regional holiday on this date. Holiday rule (+2% both channels) does not apply.</div>
+              </div>
+            </span>
+            <span class="factor-badge" style="background:#FAECE7; color:#993C1D;">📣 2-for-1 promo
+              <div class="factor-tip">
+                <div class="tip-title">📣 Promo — 2-for-1 Deal</div>
+                <div class="tip-row"><span class="tip-label">Active period</span><span class="tip-val">All day</span></div>
+                <div class="tip-row"><span class="tip-label">Order volume</span><span class="tip-val up">+8–12% (est.)</span></div>
+                <div class="tip-row"><span class="tip-label">Avg order size</span><span class="tip-val up">+15% (est.)</span></div>
+                <div class="tip-row"><span class="tip-label">Source</span><span class="tip-val">AI inference</span></div>
+                <div class="tip-note">No explicit rule. AI estimates BOGO promos increase total order count and items per order, impacting Kitchen stations most.</div>
+              </div>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ai-idle">
+      <div class="tooltip-hint">
+        <span style="color:var(--ai-color); font-size:14px;">◆</span>
+        AI will factor in: rain → +drive-through demand, nearby match → +afternoon rush, promo active → +front counter load
+      </div>
+      <div style="text-align:center; padding:1.5rem 0;">
+        <button class="btn btn-ai" onclick="triggerAI()" style="margin:0 auto; font-size:14px; padding:10px 24px;">
+          <span>◆</span> Generate staffing suggestion
+        </button>
+      </div>
+    </div>
+
+    <div id="ai-thinking" style="display:none;" class="ai-loading">
+      <div class="ai-pulse">
+        <div class="pulse-dot"></div><div class="pulse-dot"></div><div class="pulse-dot"></div>
+      </div>
+      <div style="font-size:13px; color:var(--color-text-secondary);">Analysing store context + external factors…</div>
+    </div>
+
+    <div id="ai-result" style="display:none;">
+      <div class="tooltip-hint" style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="color:var(--success); font-size:14px;">✓</span>
+          Suggestion generated in 4.2s · Model: Llama 3 8B · <strong>Click any cell for reasoning</strong>
+        </div>
+        <button class="btn btn-sm btn-chat-toggle" id="chat-toggle-btn" onclick="toggleChat()">
+          <span class="diamond">◆</span> Chat with AI
+        </button>
+      </div>
+      <div class="ai-result-layout">
+      <div class="ai-result-grid">
+      <div class="card" style="overflow-x:auto;">
+        <div class="card-title">AI recommendation — Sunday 26 Apr 2026</div>
+        <table class="grid-table" id="ai-grid-table" style="min-width:560px;">
+          <thead>
+            <tr>
+              <th style="min-width:110px;">Station</th>
+              <th>Morning (6–12)</th>
+              <th>Afternoon (12–18)</th>
+              <th>Evening (18–23)</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <!-- Grill -->
+            <tr>
+              <td class="station-cell">🔥 Grill<div class="station-area">Kitchen</div></td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Steady breakfast demand</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Rain, Sunday, Local match (evening)</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">No delivery/dine-in shift for Kitchen core in morning. Base = 2.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">Grill serves both channels equally — no directional shift.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">2 Grill-certified available morning (Trang N., Kiet N.) — fits target.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-high">● High</span> — rule-based, no extrapolation needed.</span></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">3</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Match + promo → peak</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Rain, Sunday, Local match pre-game, 2-for-1 promo</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">Sunday → +6% both channels. Promo → estimated +8% order volume. Combined peak effect.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">Higher total orders → Grill throughput must increase. Base 2 + 1 = 3.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">3 Grill-certified available afternoon — Trang N., Kiet N. + need 1 cross-trained.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-med">● Medium</span> — promo impact estimated (no explicit rule), match impact inferred.</span></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Post-match tail-off</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Rain (continuing), Sunday evening, Post-match wind-down</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">Sunday +6% but evening naturally lower. Net: base demand.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">Delivery stays slightly elevated from rain, dine-in drops. Grill balanced.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">2 Grill-certified available evening (Trang N., Kiet N.) — meets target.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-high">● High</span> — rule-based with standard evening drop-off.</span></div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Fryer -->
+            <tr>
+              <td class="station-cell">🍟 Fryer<div class="station-area">Kitchen</div></td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">1</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Low morning volume</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Rain, Sunday morning — low foot traffic period</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">Sunday +6% but morning fry demand historically low. Base = 1.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">Fryer supports both channels. Morning volume doesn't warrant extra.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">Lan P. (Fryer-certified) available all morning. No constraint.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-high">● High</span> — standard morning pattern.</span></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Lunch surge expected</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Sunday +6%, Promo driving orders, Pre-match dining</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">Sunday → Delivery +6%, Dine-in +6%. Promo amplifies. Base 1 + 1 surge.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">Both channels up → more fried items across all orders.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">Lan P. + Hoa V. (both Fryer-certified) available. Meets target.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-high">● High</span> — rule-based Sunday surge.</span></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Evening snack demand</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Match crowd carry-over, Rain → delivery snack orders</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">Rain → Delivery +5%. Sunday +6%. Evening fried snack orders stay high.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">Delivery channel dominant evening. Fries/sides are top delivery add-ons.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">Hoa V. available evening. Need 1 more Fryer-certified → gap risk.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-med">● Medium</span> — match carry-over effect is inferred, not rule-based.</span></div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Drive-Through -->
+            <tr>
+              <td class="station-cell">🪟 Drive-Through<div class="station-area">Front</div></td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Rain → DT preference</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Rain — customers avoid walking in, prefer drive-through</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">Rain → Dine-in −3%. Displaced dine-in shifts to DT. Base 1 + 1.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">Drive-Through is a Dine-in channel station. Rain net = −3% dine-in but DT absorbs displaced traffic.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">Minh H. + Bao L. (DT-certified) available morning. Fits.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-high">● High</span> — rain→DT shift is well-established pattern.</span></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">3</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Rain + match = DT peak</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Rain (persistent), Sunday, Local match → pre-game quick orders</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">Sunday +6% dine-in, Rain −3% dine-in = net +3%. But DT absorbs rain-displaced + match quick-service.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">DT becomes primary dine-in channel in rain. Match crowd wants speed → DT preference. Base 1 + 2.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">Minh H. + Bao L. + Hoa V. (DT-certified) all available afternoon. Meets target.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-med">● Medium</span> — match→DT effect inferred from general sports event patterns.</span></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Rain persists, evening drop</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Rain continues, Post-match, Sunday evening</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">Rain → DT elevated. But evening naturally slower. Net: base + 1.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">DT still above normal due to rain but post-match traffic dissipates.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">Bao L. + Minh H. available evening. Meets target.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-high">● High</span> — rain pattern + standard evening decline.</span></div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Front Counter -->
+            <tr>
+              <td class="station-cell">🏷 Front Counter<div class="station-area">Front</div></td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Promo walk-in traffic</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">2-for-1 promo (awareness-driven walk-in), Rain (counter-effect)</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">Sunday → Dine-in +6%, Rain → Dine-in −3% = net +3%. Promo adds awareness traffic.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">Front Counter is primary dine-in station. Promo means more in-store orders even with rain.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">Duc T. + Trang N. (Counter-certified) available. No constraint.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-high">● High</span> — rule-based dine-in delta + known promo pattern.</span></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Standard lunch traffic</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Sunday lunch, Rain, Match (draws crowd away from counter to DT)</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">Net dine-in +3%. Match crowd uses DT, not counter. Standard 2 sufficient.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">Counter dine-in is moderate — rain pushes some to DT, promo keeps some at counter.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">Duc T. + Minh H. (Counter-certified) available. Meets target.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-high">● High</span> — offsetting factors balance out.</span></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">1</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Low walk-in, rain → DT</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Rain (persistent evening), Sunday night — low walk-in period</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">Rain → Dine-in −3%. Sunday evening historically low counter traffic. Net below base.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">Almost all evening orders shift to Delivery + DT in rain. Counter minimal.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">Duc T. available evening. 1 is sufficient.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-high">● High</span> — rain evening counter drop is well-established.</span></div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Assembly -->
+            <tr>
+              <td class="station-cell">📦 Assembly<div class="station-area">Kitchen</div></td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">1</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Light order volume</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Sunday morning — naturally quiet assembly period</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">No significant uplift factors for morning. Base = 1.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">Assembly serves all channels. Morning volume too low to warrant extra.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">Duc T. (Assembly-certified) available. Fits.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-high">● High</span> — standard morning pattern.</span></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Peak order throughput</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Sunday +6%, Promo, Match pre-game — all drive total orders up</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">Combined channel demand: Delivery +11%, Dine-in +3%. Assembly bottleneck risk.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">Every order from every channel passes through Assembly. Must scale with total volume.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">Bao L. + Lan P. (Assembly-certified) available. Meets target.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-high">● High</span> — Assembly scales linearly with total order volume.</span></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="ai-cell" onclick="toggleReason(this)">
+                  <span class="expand-icon">▼</span>
+                  <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">staff</span></div>
+                  <div class="ai-reason">Match carry-over orders</div>
+                  <div class="reason-panel">
+                    <div class="reason-row"><span class="reason-icon">📋</span><span class="reason-label">Factors</span><span class="reason-value">Post-match delivery spike, Rain sustains delivery demand</span></div>
+                    <div class="reason-row"><span class="reason-icon">📐</span><span class="reason-label">Rules</span><span class="reason-value">Rain → Delivery +5%, Sunday +6%. Post-match delivery surge. Assembly must keep pace.</span></div>
+                    <div class="reason-row"><span class="reason-icon">🔗</span><span class="reason-label">Channel</span><span class="reason-value">Delivery dominant evening. High order volume still flows through Assembly.</span></div>
+                    <div class="reason-row"><span class="reason-icon">👥</span><span class="reason-label">Crew</span><span class="reason-value">Lan P. available. Need 1 more Assembly-certified → may need Kiet N. cross-shift.</span></div>
+                    <div class="reason-row"><span class="reason-icon">◆</span><span class="reason-label">Confidence</span><span class="reason-value"><span class="confidence-med">● Medium</span> — post-match carry-over is inferred, not rule-based.</span></div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+      <!-- AI Summary Banner -->
+      <div class="ai-summary-banner">
+        <div class="banner-title">◆ AI reasoning summary</div>
+        <div class="banner-text">
+          <strong>Rainy Sunday with a local match and 2-for-1 promo</strong> creates a compound demand shift. Rain pushes customers from dine-in to Drive-Through and Delivery (+5% delivery, −3% dine-in). Sunday baseline adds +6% across both channels. The local match amplifies afternoon demand, especially at Drive-Through (quick pre-game orders). Promo drives extra Front Counter and overall order volume. Net effect: <strong>Delivery-heavy day</strong> — prioritize Drive-Through (3 staff afternoon) and maintain Kitchen throughput (Grill 3, Assembly 2) during peak.
+        </div>
+        <div class="banner-factors">
+          <div class="factor-impact">🌧 Rain <span style="color:var(--success);margin-left:2px;">Delivery +5%</span> <span style="color:#DC2626;margin-left:2px;">Dine-in −3%</span></div>
+          <div class="factor-impact">📅 Sunday <span style="color:var(--success);margin-left:2px;">Both +6%</span></div>
+          <div class="factor-impact">⚽ Match <span style="color:var(--amber);margin-left:2px;">DT peak (inferred)</span></div>
+          <div class="factor-impact">📣 Promo <span style="color:var(--amber);margin-left:2px;">+orders (estimated)</span></div>
+        </div>
+      </div>
+      </div><!-- /ai-result-grid -->
+
+      <!-- Chat Panel -->
+      <div class="chat-panel" id="chat-panel">
+        <div class="chat-panel-inner">
+          <div class="chat-header">
+            <div class="chat-header-title"><span class="diamond">◆</span> AI Assistant</div>
+            <button class="chat-close" onclick="toggleChat()">&times;</button>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-bubble chat-bubble-system">Chat started — ask questions, add context, or run what-if scenarios</div>
+            <div class="chat-bubble chat-bubble-ai">
+              I've generated staffing for <strong>Sunday 26 Apr</strong> based on: Rain (70%), local match, 2-for-1 promo, no holiday.<br><br>
+              Total: <strong>25 staff-slots</strong> across 3 shifts and 5 stations.<br><br>
+              What would you like to adjust? You can:
+              <ul style="margin:6px 0 0 16px; font-size:11px;">
+                <li>Add context I might have missed</li>
+                <li>Ask why I chose a specific number</li>
+                <li>Override a cell directly</li>
+                <li>Run a what-if scenario</li>
+              </ul>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <div class="chat-quick-chips">
+              <button class="chat-chip" onclick="fillChat('2 crew can\'t make it for evening shift')">Add context</button>
+              <button class="chat-chip" onclick="fillChat('Why 3 at Drive-Through afternoon?')">Ask why</button>
+              <button class="chat-chip" onclick="fillChat('Set Grill evening to 3')">Override cell</button>
+              <button class="chat-chip" onclick="fillChat('What if rain stops by afternoon?')">What if...</button>
+            </div>
+            <div class="chat-input-row">
+              <input type="text" class="chat-input" id="chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMessage()" />
+              <button class="chat-send" onclick="sendMessage()">&#x27A4;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      </div><!-- /ai-result-layout -->
+    </div>
+
+    <div class="flow-nav">
+      <button class="btn" onclick="goTo(1)">← Back</button>
+      <button class="btn btn-primary" id="next-to-chart" onclick="goTo(3)" style="display:none;">Next: Assign crew →</button>
+    </div>
+  </div>
+
+  <!-- Screen 3: Deployment Chart Assignment -->
+  <div class="screen" id="screen-3">
+    <div class="screen-header">
+      <h2>Deployment chart — assign crew</h2>
+      <p>AI suggestions are shown in blue. Click <strong>+</strong> to assign crew members to each slot. Warnings appear when a shift is under the AI recommendation.</p>
+    </div>
+
+    <div class="date-bar">
+      <span style="font-size:14px;">📅</span>
+      <span class="date-label">Sunday 26 Apr 2026</span>
+      <div class="factor-badges">
+        <span class="factor-badge" style="background:#E6F1FB; color:#185FA5;">🌧 Rain
+          <div class="factor-tip">
+            <div class="tip-title">🌧 Weather — Rain</div>
+            <div class="tip-row"><span class="tip-label">Probability</span><span class="tip-val">70%</span></div>
+            <div class="tip-row"><span class="tip-label">Delivery</span><span class="tip-val up">+5%</span></div>
+            <div class="tip-row"><span class="tip-label">Dine-in</span><span class="tip-val down">−3%</span></div>
+            <div class="tip-note">Customers shift from walk-in to delivery &amp; drive-through.</div>
+          </div>
+        </span>
+        <span class="factor-badge" style="background:#FAEEDA; color:#BA7517;">⚽ Match
+          <div class="factor-tip">
+            <div class="tip-title">⚽ Event — Local Match</div>
+            <div class="tip-row"><span class="tip-label">Time</span><span class="tip-val">15:00 – 17:00</span></div>
+            <div class="tip-row"><span class="tip-label">Delivery</span><span class="tip-val up">+3–8% (est.)</span></div>
+            <div class="tip-row"><span class="tip-label">Dine-in</span><span class="tip-val up">+5–10% (est.)</span></div>
+            <div class="tip-note">Pre-game rush at DT, post-game delivery spike. AI-estimated.</div>
+          </div>
+        </span>
+        <span class="factor-badge" style="background:#FAECE7; color:#993C1D;">📣 Promo
+          <div class="factor-tip">
+            <div class="tip-title">📣 Promo — 2-for-1 Deal</div>
+            <div class="tip-row"><span class="tip-label">Active</span><span class="tip-val">All day</span></div>
+            <div class="tip-row"><span class="tip-label">Orders</span><span class="tip-val up">+8–12% (est.)</span></div>
+            <div class="tip-row"><span class="tip-label">Order size</span><span class="tip-val up">+15% (est.)</span></div>
+            <div class="tip-note">BOGO increases Kitchen station load. AI-estimated.</div>
+          </div>
+        </span>
+      </div>
+    </div>
+
+    <div class="card" style="overflow-x:auto;">
+      <table class="grid-table" style="min-width:500px;">
+        <thead>
+          <tr>
+            <th style="min-width:110px;">Station</th>
+            <th class="shift-cell">Morning (6–12)</th>
+            <th class="shift-cell">Afternoon (12–18)</th>
+            <th class="shift-cell">Evening (18–23)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="station-cell">🔥 Grill<div class="station-area">Kitchen</div></td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#FAEEDA; color:#BA7517;" onclick="removeChip(this)">TN ✕</span>
+                <span class="assignee-chip" style="background:#FAEEDA; color:#BA7517;" onclick="removeChip(this)">KN ✕</span>
+              </div>
+              <span class="diff-pill diff-match">✓ met</span>
+            </td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">3</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#FAEEDA; color:#BA7517;" onclick="removeChip(this)">TN ✕</span>
+                <span class="assignee-chip" style="background:#FAEEDA; color:#BA7517;" onclick="removeChip(this)">KN ✕</span>
+                <button class="add-slot" onclick="addChip(this, '#FAEEDA', '#BA7517')">+ assign</button>
+              </div>
+              <span class="under-warn">⚠ 1 short</span>
+            </td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#FAEEDA; color:#BA7517;" onclick="removeChip(this)">KN ✕</span>
+                <button class="add-slot" onclick="addChip(this, '#FAEEDA', '#BA7517')">+ assign</button>
+              </div>
+              <span class="under-warn">⚠ 1 short</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="station-cell">🍟 Fryer<div class="station-area">Kitchen</div></td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">1</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#FAECE7; color:#993C1D;" onclick="removeChip(this)">LP ✕</span>
+              </div>
+              <span class="diff-pill diff-match">✓ met</span>
+            </td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#FAECE7; color:#993C1D;" onclick="removeChip(this)">LP ✕</span>
+                <span class="assignee-chip" style="background:#FAECE7; color:#993C1D;" onclick="removeChip(this)">HV ✕</span>
+              </div>
+              <span class="diff-pill diff-match">✓ met</span>
+            </td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#FAECE7; color:#993C1D;" onclick="removeChip(this)">HV ✕</span>
+                <button class="add-slot" onclick="addChip(this, '#FAECE7', '#993C1D')">+ assign</button>
+              </div>
+              <span class="under-warn">⚠ 1 short</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="station-cell">🪟 Drive-Through<div class="station-area">Front</div></td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#EAF3DE; color:#3B6D11;" onclick="removeChip(this)">MH ✕</span>
+                <span class="assignee-chip" style="background:#EAF3DE; color:#3B6D11;" onclick="removeChip(this)">BL ✕</span>
+              </div>
+              <span class="diff-pill diff-match">✓ met</span>
+            </td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">3</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#EAF3DE; color:#3B6D11;" onclick="removeChip(this)">MH ✕</span>
+                <span class="assignee-chip" style="background:#EAF3DE; color:#3B6D11;" onclick="removeChip(this)">BL ✕</span>
+                <span class="assignee-chip" style="background:#EAF3DE; color:#3B6D11;" onclick="removeChip(this)">HV ✕</span>
+              </div>
+              <span class="diff-pill diff-match">✓ met</span>
+            </td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#EAF3DE; color:#3B6D11;" onclick="removeChip(this)">BL ✕</span>
+                <span class="assignee-chip" style="background:#EAF3DE; color:#3B6D11;" onclick="removeChip(this)">MH ✕</span>
+              </div>
+              <span class="diff-pill diff-match">✓ met</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="station-cell">🏷 Front Counter<div class="station-area">Front</div></td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#E6F1FB; color:#185FA5;" onclick="removeChip(this)">DT ✕</span>
+                <span class="assignee-chip" style="background:#E6F1FB; color:#185FA5;" onclick="removeChip(this)">TN ✕</span>
+              </div>
+              <span class="diff-pill diff-match">✓ met</span>
+            </td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#E6F1FB; color:#185FA5;" onclick="removeChip(this)">DT ✕</span>
+                <span class="assignee-chip" style="background:#E6F1FB; color:#185FA5;" onclick="removeChip(this)">MH ✕</span>
+              </div>
+              <span class="diff-pill diff-match">✓ met</span>
+            </td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">1</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#E6F1FB; color:#185FA5;" onclick="removeChip(this)">DT ✕</span>
+              </div>
+              <span class="diff-pill diff-match">✓ met</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="station-cell">📦 Assembly<div class="station-area">Kitchen</div></td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">1</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#EEEDFE; color:#3C3489;" onclick="removeChip(this)">DT ✕</span>
+              </div>
+              <span class="diff-pill diff-match">✓ met</span>
+            </td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#EEEDFE; color:#3C3489;" onclick="removeChip(this)">BL ✕</span>
+                <span class="assignee-chip" style="background:#EEEDFE; color:#3C3489;" onclick="removeChip(this)">LP ✕</span>
+              </div>
+              <span class="diff-pill diff-match">✓ met</span>
+            </td>
+            <td>
+              <div class="ai-rec"><span class="ai-rec-count">2</span><span class="ai-rec-label">AI rec</span></div>
+              <div class="assigned-slots">
+                <span class="assignee-chip" style="background:#EEEDFE; color:#3C3489;" onclick="removeChip(this)">LP ✕</span>
+                <button class="add-slot" onclick="addChip(this, '#EEEDFE', '#3C3489')">+ assign</button>
+              </div>
+              <span class="under-warn">⚠ 1 short</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:10px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--color-text-secondary);">
+        <div class="ai-rec" style="display:inline-flex; padding:2px 7px; margin:0;"><span class="ai-rec-count" style="font-size:11px;">N</span><span class="ai-rec-label">AI rec</span></div>
+        Blue = AI recommendation
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--color-text-secondary);">
+        <span class="diff-pill diff-match" style="margin:0;">✓ met</span> At or above target
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--color-text-secondary);">
+        <span class="under-warn" style="margin:0;">⚠ 1 short</span> Below AI target
+      </div>
+    </div>
+
+    <div class="flow-nav">
+      <button class="btn" onclick="goTo(2)">← Back</button>
+      <button class="btn btn-success" onclick="goTo(4)">Save deployment chart ✓</button>
+    </div>
+  </div>
+
+  <!-- Screen 4: Summary -->
+  <div class="screen" id="screen-4">
+    <div class="screen-header">
+      <h2>Deployment chart saved</h2>
+      <p>Chart for Sunday 26 Apr 2026 has been saved. Below is the coverage summary and AI vs. manager comparison.</p>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-card">
+        <div class="summary-val" style="color:var(--success);">21</div>
+        <div class="summary-lbl">Slots assigned</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-val" style="color:var(--amber);">4</div>
+        <div class="summary-lbl">Gaps vs AI rec</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-val">8</div>
+        <div class="summary-lbl">Crew deployed</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-val" style="color:var(--ai-color);">100%</div>
+        <div class="summary-lbl">AI rec coverage</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">AI suggestion vs. manager final — diff log</div>
+      <table class="grid-table">
+        <thead>
+          <tr><th>Station</th><th>Shift</th><th>AI rec</th><th>Assigned</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="station-cell">Grill</td><td style="font-size:12px;">Afternoon</td><td style="font-size:12px; color:var(--ai-color);">3</td><td style="font-size:12px;">2</td><td><span class="under-warn" style="margin:0;">⚠ −1</span></td></tr>
+          <tr><td class="station-cell">Grill</td><td style="font-size:12px;">Evening</td><td style="font-size:12px; color:var(--ai-color);">2</td><td style="font-size:12px;">1</td><td><span class="under-warn" style="margin:0;">⚠ −1</span></td></tr>
+          <tr><td class="station-cell">Fryer</td><td style="font-size:12px;">Evening</td><td style="font-size:12px; color:var(--ai-color);">2</td><td style="font-size:12px;">1</td><td><span class="under-warn" style="margin:0;">⚠ −1</span></td></tr>
+          <tr><td class="station-cell">Assembly</td><td style="font-size:12px;">Evening</td><td style="font-size:12px; color:var(--ai-color);">2</td><td style="font-size:12px;">1</td><td><span class="under-warn" style="margin:0;">⚠ −1</span></td></tr>
+          <tr><td class="station-cell" style="color:var(--color-text-secondary);">All others</td><td style="font-size:12px;">All shifts</td><td style="font-size:12px; color:var(--ai-color);">—</td><td style="font-size:12px;">—</td><td><span class="diff-pill diff-match">✓ met</span></td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:10px; font-size:11px; color:var(--color-text-secondary);">Diff stored for AI learning and historical audit. You can view historical charts in the Reports section.</div>
+    </div>
+
+    <div class="flow-nav">
+      <button class="btn" onclick="goTo(3)">← Edit chart</button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="goTo(5)">View saved charts</button>
+        <button class="btn btn-primary" onclick="goTo(0)">Start new chart ↺</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 5: Saved Charts -->
+  <div class="screen" id="screen-5">
+    <div class="screen-header">
+      <h2>Saved deployment charts</h2>
+      <p>View, edit, or compare past deployment charts. Click any row to re-open and update.</p>
+    </div>
+
+    <div class="row" style="margin-bottom:16px; align-items:center;">
+      <div style="flex:1; display:flex; gap:8px; align-items:center;">
+        <div style="font-size:12px; color:var(--color-text-secondary);">Filter:</div>
+        <select style="font-size:12px;">
+          <option>All statuses</option>
+          <option>Finalized</option>
+          <option>Draft</option>
+        </select>
+        <input type="date" value="2026-04-01" style="font-size:12px;" />
+        <span style="font-size:12px; color:var(--color-text-secondary);">to</span>
+        <input type="date" value="2026-04-30" style="font-size:12px;" />
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="goTo(2)">+ New chart</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">April 2026</div>
+      <div class="saved-charts-list">
+
+        <div class="saved-chart-row" onclick="loadSavedChart(0)">
+          <div class="saved-chart-date">📅 Sun 26 Apr</div>
+          <div class="saved-chart-factors">
+            <span class="factor-badge" style="background:#E6F1FB; color:#185FA5; font-size:10px;">🌧 Rain</span>
+            <span class="factor-badge" style="background:#FAEEDA; color:#BA7517; font-size:10px;">⚽ Match</span>
+            <span class="factor-badge" style="background:#FAECE7; color:#993C1D; font-size:10px;">📣 Promo</span>
+          </div>
+          <div class="saved-chart-stats">
+            <div class="saved-chart-stat">👥 8 crew</div>
+            <div class="saved-chart-stat">21/25 slots</div>
+            <div class="saved-chart-stat">
+              <span class="chart-status finalized">Finalized</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="saved-chart-row" onclick="loadSavedChart(1)">
+          <div class="saved-chart-date">📅 Sat 25 Apr</div>
+          <div class="saved-chart-factors">
+            <span class="factor-badge" style="background:#EAF3DE; color:#3B6D11; font-size:10px;">☀️ Dry</span>
+            <span class="factor-badge" style="background:#EEEDFE; color:#3C3489; font-size:10px;">📅 Saturday</span>
+          </div>
+          <div class="saved-chart-stats">
+            <div class="saved-chart-stat">👥 7 crew</div>
+            <div class="saved-chart-stat">22/22 slots</div>
+            <div class="saved-chart-stat">
+              <span class="chart-status finalized">Finalized</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="saved-chart-row" onclick="loadSavedChart(2)">
+          <div class="saved-chart-date">📅 Fri 24 Apr</div>
+          <div class="saved-chart-factors">
+            <span class="factor-badge" style="background:#EAF3DE; color:#3B6D11; font-size:10px;">☀️ Dry</span>
+          </div>
+          <div class="saved-chart-stats">
+            <div class="saved-chart-stat">👥 6 crew</div>
+            <div class="saved-chart-stat">18/18 slots</div>
+            <div class="saved-chart-stat">
+              <span class="chart-status finalized">Finalized</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="saved-chart-row" onclick="loadSavedChart(3)">
+          <div class="saved-chart-date">📅 Thu 23 Apr</div>
+          <div class="saved-chart-factors">
+            <span class="factor-badge" style="background:#E6F1FB; color:#185FA5; font-size:10px;">🌧 Rain</span>
+          </div>
+          <div class="saved-chart-stats">
+            <div class="saved-chart-stat">👥 5 crew</div>
+            <div class="saved-chart-stat">14/20 slots</div>
+            <div class="saved-chart-stat">
+              <span class="chart-status draft">Draft</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="saved-chart-row" onclick="loadSavedChart(4)">
+          <div class="saved-chart-date">📅 Wed 22 Apr</div>
+          <div class="saved-chart-factors">
+            <span class="factor-badge" style="background:#EAF3DE; color:#3B6D11; font-size:10px;">☀️ Dry</span>
+            <span class="factor-badge" style="background:#FAECE7; color:#993C1D; font-size:10px;">📣 Promo</span>
+          </div>
+          <div class="saved-chart-stats">
+            <div class="saved-chart-stat">👥 7 crew</div>
+            <div class="saved-chart-stat">20/20 slots</div>
+            <div class="saved-chart-stat">
+              <span class="chart-status finalized">Finalized</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px;">
+      <div class="card-title">Quick stats — This week</div>
+      <div class="summary-row">
+        <div class="summary-card">
+          <div class="summary-val" style="color:var(--success);">5</div>
+          <div class="summary-lbl">Charts created</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-val" style="color:var(--ai-color);">84%</div>
+          <div class="summary-lbl">Avg AI match rate</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-val" style="color:var(--brand);">95/105</div>
+          <div class="summary-lbl">Total slots filled</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-val">8</div>
+          <div class="summary-lbl">Unique crew used</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-nav">
+      <div style="font-size:12px; color:var(--color-text-secondary);">Showing 5 charts</div>
+      <button class="btn btn-primary" onclick="goTo(0)">← Back to store profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODALS ========== -->
+
+<!-- Add Station Modal -->
+<div class="modal-overlay" id="add-station-modal" onclick="if(event.target===this)closeModal(this.id)">
+  <div class="modal">
+    <h3>Add station</h3>
+    <div class="modal-sub">Add a new operational station to your store profile.</div>
+    <div class="modal-field">
+      <label>Station name</label>
+      <input type="text" id="new-station-name" placeholder="e.g. Oven, Drinks Station" />
+    </div>
+    <div class="modal-field">
+      <label>Area</label>
+      <select id="new-station-area">
+        <option value="Kitchen">Kitchen</option>
+        <option value="Front">Front</option>
+        <option value="Delivery">Delivery</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Number of positions</label>
+      <input type="number" id="new-station-positions" value="2" min="1" max="10" />
+    </div>
+    <div class="modal-field">
+      <label>Icon</label>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <span class="skill-option selected" onclick="selectIcon(this)">🍕</span>
+        <span class="skill-option" onclick="selectIcon(this)">🔥</span>
+        <span class="skill-option" onclick="selectIcon(this)">🍟</span>
+        <span class="skill-option" onclick="selectIcon(this)">🥤</span>
+        <span class="skill-option" onclick="selectIcon(this)">📦</span>
+        <span class="skill-option" onclick="selectIcon(this)">🛵</span>
+        <span class="skill-option" onclick="selectIcon(this)">🪟</span>
+        <span class="skill-option" onclick="selectIcon(this)">🏷</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-sm" onclick="closeModal('add-station-modal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="addStation()">Add station</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal-overlay" id="add-task-modal" onclick="if(event.target===this)closeModal(this.id)">
+  <div class="modal">
+    <h3>Add task</h3>
+    <div class="modal-sub">Add a secondary task that crew can be assigned to during a shift.</div>
+    <div class="modal-field">
+      <label>Task name</label>
+      <input type="text" id="new-task-name" placeholder="e.g. Dough Prep, Inventory" />
+    </div>
+    <div class="modal-field">
+      <label>Type</label>
+      <select id="new-task-type">
+        <option value="Rotational task">Rotational task</option>
+        <option value="Kitchen task">Kitchen task</option>
+        <option value="Maintenance task">Maintenance task</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-sm" onclick="closeModal('add-task-modal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="addTask()">Add task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Crew Member Modal -->
+<div class="modal-overlay" id="add-crew-modal" onclick="if(event.target===this)closeModal(this.id)">
+  <div class="modal">
+    <h3>Add crew member</h3>
+    <div class="modal-sub">Add a new member to the crew roster and assign their station certifications.</div>
+    <div class="modal-field">
+      <label>Full name</label>
+      <input type="text" id="new-crew-name" placeholder="e.g. Nguyen Van A" />
+    </div>
+    <div class="modal-field">
+      <label>Role</label>
+      <select id="new-crew-role">
+        <option value="Crew">Crew</option>
+        <option value="Shift Lead">Shift Lead</option>
+        <option value="Driver">Driver</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Skills — certified stations</label>
+      <div class="skill-picker" id="crew-skill-picker">
+        <span class="skill-option" onclick="this.classList.toggle('selected')">Grill</span>
+        <span class="skill-option" onclick="this.classList.toggle('selected')">Fryer</span>
+        <span class="skill-option" onclick="this.classList.toggle('selected')">Drive-Through</span>
+        <span class="skill-option" onclick="this.classList.toggle('selected')">Front Counter</span>
+        <span class="skill-option" onclick="this.classList.toggle('selected')">Assembly</span>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>Availability</label>
+      <div style="display:flex; gap:8px;">
+        <select id="new-crew-days" style="flex:1;">
+          <option value="Mon–Sun">Mon–Sun</option>
+          <option value="Mon–Sat">Mon–Sat</option>
+          <option value="Mon–Fri">Mon–Fri</option>
+          <option value="Tue–Sun">Tue–Sun</option>
+          <option value="Wed–Sun">Wed–Sun</option>
+          <option value="Thu–Sun">Thu–Sun</option>
+        </select>
+        <select id="new-crew-shifts" style="flex:1;">
+          <option value="All shifts">All shifts</option>
+          <option value="Morning+Afternoon">Morning + Afternoon</option>
+          <option value="Afternoon+Evening">Afternoon + Evening</option>
+          <option value="Morning only">Morning only</option>
+          <option value="Evening only">Evening only</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-sm" onclick="closeModal('add-crew-modal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="addCrewMember()">Add member</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Crew Member Modal -->
+<div class="modal-overlay" id="edit-crew-modal" onclick="if(event.target===this)closeModal(this.id)">
+  <div class="modal">
+    <h3 id="edit-crew-title">Edit crew member</h3>
+    <div class="modal-sub">Update skills, availability, or remove this member.</div>
+    <div class="modal-field">
+      <label>Full name</label>
+      <input type="text" id="edit-crew-name" />
+    </div>
+    <div class="modal-field">
+      <label>Skills — certified stations</label>
+      <div class="skill-picker" id="edit-skill-picker">
+        <span class="skill-option" onclick="this.classList.toggle('selected')">Grill</span>
+        <span class="skill-option" onclick="this.classList.toggle('selected')">Fryer</span>
+        <span class="skill-option" onclick="this.classList.toggle('selected')">Drive-Through</span>
+        <span class="skill-option" onclick="this.classList.toggle('selected')">Front Counter</span>
+        <span class="skill-option" onclick="this.classList.toggle('selected')">Assembly</span>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>Availability</label>
+      <div style="display:flex; gap:8px;">
+        <select id="edit-crew-days" style="flex:1;">
+          <option value="Mon–Sun">Mon–Sun</option>
+          <option value="Mon–Sat">Mon–Sat</option>
+          <option value="Mon–Fri">Mon–Fri</option>
+          <option value="Tue–Sun">Tue–Sun</option>
+          <option value="Wed–Sun">Wed–Sun</option>
+        </select>
+        <select id="edit-crew-shifts" style="flex:1;">
+          <option value="All shifts">All shifts</option>
+          <option value="Morning+Afternoon">Morning + Afternoon</option>
+          <option value="Afternoon+Evening">Afternoon + Evening</option>
+          <option value="Morning only">Morning only</option>
+          <option value="Evening only">Evening only</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-sm" style="color:#A32D2D; margin-right:auto;" onclick="removeCrew()">Remove member</button>
+      <button class="btn btn-sm" onclick="closeModal('edit-crew-modal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveCrewEdit()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentStep = 0;
+
+function goTo(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.step-dot').forEach((d,i) => {
+    d.classList.remove('active','done');
+    if (i < n) d.classList.add('done');
+    if (i === n) d.classList.add('active');
+  });
+  document.getElementById('screen-'+n).classList.add('active');
+  document.getElementById('tab-'+n).classList.add('active');
+  currentStep = n;
+}
+
+function triggerAI() {
+  document.getElementById('ai-idle').style.display = 'none';
+  document.getElementById('ai-thinking').style.display = 'block';
+  setTimeout(() => {
+    document.getElementById('ai-thinking').style.display = 'none';
+    document.getElementById('ai-result').style.display = 'block';
+    document.getElementById('next-to-chart').style.display = 'inline-flex';
+  }, 2200);
+}
+
+/* ===== AI Reasoning toggle ===== */
+function toggleReason(cell) {
+  const panel = cell.querySelector('.reason-panel');
+  const icon = cell.querySelector('.expand-icon');
+  const wasOpen = panel.classList.contains('open');
+
+  document.querySelectorAll('.reason-panel.open').forEach(p => {
+    p.classList.remove('open');
+    p.closest('.ai-cell').querySelector('.expand-icon').textContent = '▼';
+  });
+
+  if (!wasOpen) {
+    panel.classList.add('open');
+    icon.textContent = '▲';
+  }
+
+  if (chatOpen) {
+    const row = cell.closest('tr');
+    if (row) {
+      const stationCell = row.querySelector('.station-cell');
+      const station = stationCell ? stationCell.textContent.split('\n')[0].replace(/[🔥🚗🍔🖥️📦]/g,'').trim() : 'Station';
+      const cells = row.querySelectorAll('.ai-cell');
+      const idx = Array.from(cells).indexOf(cell);
+      const shifts = ['morning','afternoon','evening'];
+      const shift = shifts[idx] || 'shift';
+      fillChat('Why ' + station + ' ' + shift + '?');
+    }
+  }
+}
+
+/* ===== Chip assign / remove in deployment chart ===== */
+const crewNames = ['TN','MH','LP','DT','HV','KN','BL'];
+let nameIdx = 0;
+
+function addChip(btn, bg, color) {
+  const chip = document.createElement('span');
+  chip.className = 'assignee-chip';
+  chip.style.background = bg;
+  chip.style.color = color;
+  chip.textContent = crewNames[nameIdx % crewNames.length] + ' ✕';
+  nameIdx++;
+  chip.onclick = function() { removeChip(this); };
+  btn.parentNode.insertBefore(chip, btn);
+  updateWarning(btn.closest('td'));
+}
+
+function removeChip(chip) {
+  const td = chip.closest('td');
+  chip.remove();
+  updateWarning(td);
+}
+
+function updateWarning(td) {
+  const rec = parseInt(td.querySelector('.ai-rec-count')?.textContent || '0');
+  const assigned = td.querySelectorAll('.assignee-chip').length;
+  let pill = td.querySelector('.diff-pill, .under-warn');
+  if (!pill) { pill = document.createElement('span'); td.appendChild(pill); }
+  if (assigned >= rec) {
+    pill.className = 'diff-pill diff-match';
+    pill.textContent = '✓ met';
+  } else {
+    pill.className = 'under-warn';
+    pill.textContent = '⚠ ' + (rec - assigned) + ' short';
+  }
+}
+
+/* ===== Modals ===== */
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+/* ===== Icon picker ===== */
+function selectIcon(el) {
+  el.parentNode.querySelectorAll('.skill-option').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+/* ===== Add Station ===== */
+const stationColors = [
+  { bg:'#FAEEDA', color:'#BA7517' },
+  { bg:'#FAECE7', color:'#993C1D' },
+  { bg:'#EAF3DE', color:'#3B6D11' },
+  { bg:'#E6F1FB', color:'#185FA5' },
+  { bg:'#EEEDFE', color:'#3C3489' },
+  { bg:'#E1F5EE', color:'#085041' },
+];
+
+function addStation() {
+  const name = document.getElementById('new-station-name').value.trim();
+  const area = document.getElementById('new-station-area').value;
+  const positions = document.getElementById('new-station-positions').value;
+  const icon = document.querySelector('#add-station-modal .skill-option.selected')?.textContent || '📦';
+  if (!name) { document.getElementById('new-station-name').style.borderColor='#A32D2D'; return; }
+
+  const c = stationColors[Math.floor(Math.random() * stationColors.length)];
+  const list = document.getElementById('station-list');
+  const item = document.createElement('div');
+  item.className = 'station-item';
+  item.innerHTML = `
+    <div class="station-icon" style="background:${c.bg}; font-size:16px;">${icon}</div>
+    <div class="station-info"><div class="station-name">${name}</div><div class="station-meta">${area} · ${positions} positions</div></div>
+    <div class="toggle" onclick="this.classList.toggle('off')"></div>
+  `;
+  list.appendChild(item);
+
+  // also add to skill pickers
+  document.querySelectorAll('.skill-picker').forEach(picker => {
+    const opt = document.createElement('span');
+    opt.className = 'skill-option';
+    opt.textContent = name;
+    opt.onclick = function() { this.classList.toggle('selected'); };
+    picker.appendChild(opt);
+  });
+
+  document.getElementById('new-station-name').value = '';
+  closeModal('add-station-modal');
+}
+
+/* ===== Add Task ===== */
+const taskIcons = ['📋','🧊','📊','🗂','🔧'];
+
+function addTask() {
+  const name = document.getElementById('new-task-name').value.trim();
+  const type = document.getElementById('new-task-type').value;
+  if (!name) { document.getElementById('new-task-name').style.borderColor='#A32D2D'; return; }
+
+  const icon = taskIcons[Math.floor(Math.random() * taskIcons.length)];
+  const c = stationColors[Math.floor(Math.random() * stationColors.length)];
+  const list = document.getElementById('task-list');
+  const item = document.createElement('div');
+  item.className = 'station-item';
+  item.innerHTML = `
+    <div class="station-icon" style="background:${c.bg}; font-size:14px;">${icon}</div>
+    <div class="station-info"><div class="station-name">${name}</div><div class="station-meta">${type}</div></div>
+    <div class="toggle" onclick="this.classList.toggle('off')"></div>
+  `;
+  list.appendChild(item);
+
+  document.getElementById('new-task-name').value = '';
+  closeModal('add-task-modal');
+}
+
+/* ===== Add Crew Member ===== */
+const avatarColors = [
+  { bg:'#FAEEDA', color:'#BA7517' }, { bg:'#EAF3DE', color:'#3B6D11' },
+  { bg:'#FAECE7', color:'#993C1D' }, { bg:'#EEEDFE', color:'#3C3489' },
+  { bg:'#E6F1FB', color:'#185FA5' }, { bg:'#E1F5EE', color:'#085041' },
+  { bg:'#FAECE7', color:'#712B13' }, { bg:'#FCE7F3', color:'#9D174D' },
+];
+
+const skillColorMap = {
+  'Grill':         { bg:'#FAEEDA', color:'#BA7517' },
+  'Fryer':         { bg:'#FAECE7', color:'#993C1D' },
+  'Drive-Through': { bg:'#EAF3DE', color:'#3B6D11' },
+  'Front Counter': { bg:'#E6F1FB', color:'#185FA5' },
+  'Assembly':      { bg:'#EEEDFE', color:'#3C3489' },
+};
+
+function getInitials(name) {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+  return name.substring(0,2).toUpperCase();
+}
+
+function addCrewMember() {
+  const name = document.getElementById('new-crew-name').value.trim();
+  if (!name) { document.getElementById('new-crew-name').style.borderColor='#A32D2D'; return; }
+
+  const skills = [];
+  document.querySelectorAll('#crew-skill-picker .skill-option.selected').forEach(s => skills.push(s.textContent));
+  const days = document.getElementById('new-crew-days').value;
+  const shifts = document.getElementById('new-crew-shifts').value;
+  const initials = getInitials(name);
+  const ac = avatarColors[Math.floor(Math.random() * avatarColors.length)];
+
+  const grid = document.getElementById('crew-grid');
+  const addCard = grid.querySelector('[style*="dashed"]');
+
+  const card = document.createElement('div');
+  card.className = 'crew-card';
+  card.onclick = function() { openEditCrew(name, initials, skills, days + ', ' + shifts); };
+  card.innerHTML = `
+    <div class="crew-avatar" style="background:${ac.bg}; color:${ac.color};">${initials}</div>
+    <div class="crew-name">${name}</div>
+    <div class="crew-skills">
+      ${skills.map(s => {
+        const sc = skillColorMap[s] || { bg:'#f3f4f6', color:'#6b7280' };
+        return `<span class="skill-tag" style="background:${sc.bg}; color:${sc.color};">${s}</span>`;
+      }).join('')}
+    </div>
+  `;
+  grid.insertBefore(card, addCard);
+
+  // also add initials to assignable pool
+  crewNames.push(initials);
+
+  // update count
+  const count = grid.querySelectorAll('.crew-card:not([style*="dashed"])').length;
+  document.getElementById('crew-count').textContent = count;
+
+  // reset form
+  document.getElementById('new-crew-name').value = '';
+  document.querySelectorAll('#crew-skill-picker .skill-option').forEach(s => s.classList.remove('selected'));
+  closeModal('add-crew-modal');
+}
+
+/* ===== Edit Crew Member ===== */
+let editingCrewCard = null;
+
+function openEditCrew(name, initials, skills, availability) {
+  document.getElementById('edit-crew-name').value = name;
+  document.getElementById('edit-crew-title').textContent = 'Edit — ' + name;
+
+  document.querySelectorAll('#edit-skill-picker .skill-option').forEach(s => {
+    s.classList.toggle('selected', skills.includes(s.textContent));
+  });
+
+  editingCrewCard = event.currentTarget;
+  openModal('edit-crew-modal');
+}
+
+function saveCrewEdit() {
+  const name = document.getElementById('edit-crew-name').value.trim();
+  if (!name || !editingCrewCard) return;
+
+  const skills = [];
+  document.querySelectorAll('#edit-skill-picker .skill-option.selected').forEach(s => skills.push(s.textContent));
+
+  const initials = getInitials(name);
+  const ac = avatarColors[Math.floor(Math.random() * avatarColors.length)];
+  editingCrewCard.querySelector('.crew-name').textContent = name;
+  editingCrewCard.querySelector('.crew-avatar').textContent = initials;
+  editingCrewCard.querySelector('.crew-skills').innerHTML = skills.map(s => {
+    const sc = skillColorMap[s] || { bg:'#f3f4f6', color:'#6b7280' };
+    return `<span class="skill-tag" style="background:${sc.bg}; color:${sc.color};">${s}</span>`;
+  }).join('');
+
+  closeModal('edit-crew-modal');
+}
+
+function removeCrew() {
+  if (!editingCrewCard) return;
+  editingCrewCard.remove();
+  const grid = document.getElementById('crew-grid');
+  const count = grid.querySelectorAll('.crew-card:not([style*="dashed"])').length;
+  document.getElementById('crew-count').textContent = count;
+  closeModal('edit-crew-modal');
+}
+
+/* ===== Saved Charts ===== */
+function loadSavedChart(idx) {
+  goTo(3);
+}
+
+/* ---- Chat Panel ---- */
+let chatOpen = false;
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  const panel = document.getElementById('chat-panel');
+  const btn = document.getElementById('chat-toggle-btn');
+  panel.classList.toggle('open', chatOpen);
+  btn.classList.toggle('active', chatOpen);
+  if (chatOpen) {
+    const msgs = document.getElementById('chat-messages');
+    msgs.scrollTop = msgs.scrollHeight;
+    document.getElementById('chat-input').focus();
+  }
+}
+
+function fillChat(text) {
+  const input = document.getElementById('chat-input');
+  input.value = text;
+  input.focus();
+}
+
+function addBubble(type, html) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'chat-bubble chat-bubble-' + type;
+  div.innerHTML = html;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'chat-typing';
+  div.id = 'chat-typing';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById('chat-typing');
+  if (el) el.remove();
+}
+
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  addBubble('user', text);
+  showTyping();
+
+  setTimeout(function() {
+    hideTyping();
+    const lower = text.toLowerCase();
+
+    if (lower.includes("can't make it") || lower.includes("won't show") || lower.includes("birthday") || lower.includes("crew") && lower.includes("evening")) {
+      handleAddContext(text);
+    } else if (lower.match(/^set\s+/i) || lower.match(/need\s+\d+\s+at/i) || lower.match(/\d+\s+at\s+/i) || lower.includes('override')) {
+      handleOverride(text);
+    } else if (lower.startsWith('why') || lower.includes('why ')) {
+      handleAskWhy(text);
+    } else if (lower.includes('what if') || lower.includes('what-if') || lower.includes('scenario')) {
+      handleWhatIf(text);
+    } else {
+      addBubble('ai', "I understand. Could you tell me more specifically what you'd like to adjust? You can:<br>• Add context about crew availability<br>• Override a specific cell<br>• Ask why I chose a number<br>• Run a what-if scenario");
+    }
+  }, 1200);
+}
+
+function handleAddContext(text) {
+  updateGridCell('Grill', 'evening', 2, 1, 'refined');
+  updateGridCell('Assembly', 'evening', 2, 1, 'refined');
+
+  addBubble('ai',
+    '<strong>Got it — adjusting for reduced evening availability.</strong><br><br>' +
+    'Reduced available crew from 7 to 5 for evening shift. Updated:<br>' +
+    '<span class="cell-change"><span class="old-val">Grill Eve: 2</span> <span class="arrow">→</span> <span class="new-val">1</span></span>' +
+    '<span class="cell-change"><span class="old-val">Assembly Eve: 2</span> <span class="arrow">→</span> <span class="new-val">1</span></span>' +
+    '<br><br><em style="font-size:11px; color:var(--color-text-secondary);">Reasoning: Crew constraint caps staffing. Priority kept on Drive-Through &amp; Dispatch for delivery demand.</em>'
+  );
+  addBubble('system', '✓ Grid updated — 2 cells refined');
+}
+
+function handleOverride(text) {
+  const match = text.match(/(\d+)\s+(?:at|for)\s+(\w[\w\- ]*?)(?:\s+(?:in|for|during)\s+(?:the\s+)?(\w+))?/i);
+  let station = 'Drive-Through';
+  let shift = 'morning';
+  let count = 3;
+
+  if (match) {
+    count = parseInt(match[1]);
+    station = match[2].trim();
+    if (match[3]) shift = match[3].trim().toLowerCase();
+  }
+
+  const stationMap = {'grill':'Grill','drive-through':'Drive-Through','drive through':'Drive-Through','dt':'Drive-Through','assembly':'Assembly','front counter':'Front Counter','counter':'Front Counter','dispatch':'Dispatch'};
+  const normalStation = stationMap[station.toLowerCase()] || station;
+
+  updateGridCell(normalStation, shift, null, count, 'override');
+
+  addBubble('ai',
+    '<strong>Updated.</strong> ' + normalStation + ' ' + shift + ' set to <strong>' + count + '</strong>.<br><br>' +
+    '<em style="font-size:11px; color:var(--color-text-secondary);">Note: This is a manager override — it will be locked from AI adjustments unless you remove it.</em>'
+  );
+  addBubble('system', '🔒 ' + normalStation + ' ' + shift + ' — manager override applied');
+}
+
+function handleAskWhy(text) {
+  const lower = text.toLowerCase();
+  let explanation = '';
+
+  if (lower.includes('drive') || lower.includes('dt')) {
+    explanation = '<strong>Drive-Through staffing logic:</strong><br><br>' +
+      '📋 <strong>Factors:</strong> Rain 70%, Sunday, local match<br>' +
+      '📐 <strong>Rule:</strong> Rain → Delivery +5% → DT gets overflow from in-store shift<br>' +
+      '⚽ <strong>Match:</strong> Local match drives quick-meal pick-ups at DT peak hours<br>' +
+      '👥 <strong>Crew:</strong> 3 DT-certified crew available for this shift<br>' +
+      '◆ <strong>Confidence:</strong> <span style="color:var(--success); font-weight:600;">High (85%)</span> — strong historical data for rain + match overlap';
+  } else if (lower.includes('front') || lower.includes('counter')) {
+    explanation = '<strong>Front Counter staffing logic:</strong><br><br>' +
+      '📋 <strong>Factors:</strong> Rain pushes dine-in down −3%<br>' +
+      '📐 <strong>Rule:</strong> Sunday evening naturally quiet; rain compounds the effect<br>' +
+      '🔗 <strong>Channel:</strong> Almost all evening traffic shifts to Delivery &amp; Drive-Through<br>' +
+      '👥 <strong>Crew:</strong> Counter sees minimal walk-in — 1 staff can handle remaining volume<br>' +
+      '◆ <strong>Confidence:</strong> <span style="color:var(--success); font-weight:600;">High (82%)</span>';
+  } else if (lower.includes('grill')) {
+    explanation = '<strong>Grill staffing logic:</strong><br><br>' +
+      '📋 <strong>Factors:</strong> All channels active → consistent cooking demand<br>' +
+      '📐 <strong>Rule:</strong> Grill throughput scales with total order volume, not channel mix<br>' +
+      '🔗 <strong>Channel:</strong> Delivery and DT both funnel through Grill<br>' +
+      '👥 <strong>Crew:</strong> Morning peak needs 3, afternoon + evening 2 each<br>' +
+      '◆ <strong>Confidence:</strong> <span style="color:var(--amber); font-weight:600;">Medium (72%)</span> — match timing uncertainty';
+  } else {
+    explanation = '<strong>General reasoning:</strong><br><br>' +
+      'The suggestion balances demand prediction (from external factors) against crew availability and certifications. ' +
+      'Each cell reflects the minimum crew needed to meet projected order volume within a 15-min service target.<br><br>' +
+      'Click a specific cell for detailed reasoning, or ask about a particular station.';
+  }
+
+  addBubble('ai', explanation);
+}
+
+let scenarioChanges = null;
+
+function handleWhatIf(text) {
+  scenarioChanges = [
+    { station: 'Drive-Through', shift: 'afternoon', from: 3, to: 2 },
+    { station: 'Front Counter', shift: 'afternoon', from: 2, to: 3 },
+    { station: 'Dispatch', shift: 'afternoon', from: 3, to: 2 }
+  ];
+
+  let changeHtml = scenarioChanges.map(function(c) {
+    return '<span class="cell-change"><span class="old-val">' + c.station + ' ' + c.shift + ': ' + c.from + '</span> <span class="arrow">→</span> <span class="new-val">' + c.to + '</span></span>';
+  }).join(' ');
+
+  addBubble('ai',
+    '<strong>Scenario: rain stops by afternoon</strong><br><br>' +
+    'If dry from afternoon: Delivery drops to base (+6% Sunday only), Dine-in recovers (+6% Sunday).<br><br>' +
+    'Proposed changes:<br>' + changeHtml +
+    '<div class="scenario-actions">' +
+    '<button class="scenario-btn-apply" onclick="applyScenario()">✓ Apply changes</button>' +
+    '<button class="scenario-btn-dismiss" onclick="dismissScenario()">✕ Dismiss</button>' +
+    '</div>'
+  );
+
+  scenarioChanges.forEach(function(c) {
+    highlightScenarioCell(c.station, c.shift);
+  });
+}
+
+function highlightScenarioCell(station, shift) {
+  const table = document.getElementById('ai-grid-table');
+  if (!table) return;
+  const rows = table.querySelectorAll('tbody tr, tr');
+  rows.forEach(function(row) {
+    const firstCell = row.querySelector('td:first-child, th:first-child');
+    if (!firstCell) return;
+    const cellText = firstCell.textContent.trim();
+    if (cellText.toLowerCase().includes(station.toLowerCase().split(' ')[0]) ||
+        station.toLowerCase().includes(cellText.toLowerCase().split(' ')[0])) {
+      const shiftIdx = { morning: 1, afternoon: 2, evening: 3 }[shift];
+      if (shiftIdx) {
+        const aiCells = row.querySelectorAll('.ai-cell');
+        if (aiCells[shiftIdx - 1]) {
+          aiCells[shiftIdx - 1].classList.add('grid-scenario');
+        }
+      }
+    }
+  });
+}
+
+function applyScenario() {
+  if (!scenarioChanges) return;
+  scenarioChanges.forEach(function(c) {
+    updateGridCell(c.station, c.shift, c.from, c.to, 'refined');
+  });
+  document.querySelectorAll('.grid-scenario').forEach(function(el) {
+    el.classList.remove('grid-scenario');
+  });
+  addBubble('system', '✓ Scenario applied — ' + scenarioChanges.length + ' cells updated');
+  scenarioChanges = null;
+}
+
+function dismissScenario() {
+  document.querySelectorAll('.grid-scenario').forEach(function(el) {
+    el.classList.remove('grid-scenario');
+  });
+  addBubble('system', '✕ Scenario dismissed — grid unchanged');
+  scenarioChanges = null;
+}
+
+function updateGridCell(station, shift, oldVal, newVal, type) {
+  const table = document.getElementById('ai-grid-table');
+  if (!table) return;
+  const rows = table.querySelectorAll('tr');
+  rows.forEach(function(row) {
+    const firstCell = row.querySelector('td:first-child');
+    if (!firstCell) return;
+    const cellText = firstCell.textContent.trim().toLowerCase();
+    const stationLower = station.toLowerCase();
+
+    if (cellText.includes(stationLower.split(' ')[0]) ||
+        cellText.includes(stationLower.split('-')[0]) ||
+        stationLower.includes(cellText.split(' ')[0])) {
+      const shiftIdx = { morning: 1, afternoon: 2, evening: 3 }[shift];
+      if (!shiftIdx) return;
+      const aiCells = row.querySelectorAll('.ai-cell');
+      if (!aiCells[shiftIdx - 1]) return;
+      const cell = aiCells[shiftIdx - 1];
+
+      const recEl = cell.querySelector('.ai-rec-count');
+      if (recEl) {
+        recEl.textContent = newVal;
+      }
+
+      cell.classList.remove('grid-refined', 'grid-override', 'grid-scenario');
+      cell.classList.add(type === 'override' ? 'grid-override' : 'grid-refined');
+    }
+  });
+}
+</script>
+</body>
+</html>
