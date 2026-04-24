@@ -52,6 +52,8 @@ RUSH_HOURS: list[dict] = [
     {"label": "Dinner rush", "start": 17, "end": 20, "uplift_pct": 0.25},
 ]
 
+MIN_RUSH_OVERLAP_PCT = 0.40
+
 SHIFT_WINDOWS: dict[str, tuple[int, int]] = {
     "Morning": (6, 12),
     "Afternoon": (12, 18),
@@ -90,6 +92,8 @@ def _rush_hour_for_shift(shift: str) -> RushHourInfo:
         if overlap <= 0:
             continue
         pct = overlap / shift_len
+        if pct < MIN_RUSH_OVERLAP_PCT:
+            continue
         uplift = max(1, int(round(rh["uplift_pct"] * 10 * pct)))
         info = RushHourInfo(
             is_rush=True,
